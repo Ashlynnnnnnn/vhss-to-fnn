@@ -26,6 +26,4 @@ add_executable(
 # - GMP
 # - Math
 # - Pbc
-target_link_libraries(2k-prs gmp m pbc)
-target_link_libraries(2k-prs-test gmp m pbc)
 target_link_libraries(2k-prs-demo gmp m pbc)

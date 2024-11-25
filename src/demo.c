@@ -42,23 +42,10 @@ int main(int argc, char *argv[])
 
     mpz_urandomb(plaintext->m, prng, keys->k);
 
-
-    // prs_encrypt
-    // test_prs_enc_v1(ciphertext_v1, keys_v1, plaintext);
-    //test_prs_enc(ciphertext, keys, plaintext, 512);
     printf("Starting prs_encrypt\n");
     prs_encrypt(ciphertext, keys, plaintext, prng, 512);
-
-    // test decrypt
-    // gmp_printf("c_v1: %Zd\n\n", ciphertext_v1->c);
     gmp_printf("c: %Zd\n\n", ciphertext->c);
 
-    // test_prs_dec_v1(dec_plaintext_v1, keys_v1, ciphertext_v1);
-    // gmp_printf("m1_v1: %Zd\n\n", plaintext->m);
-    // gmp_printf("m2_v2: %Zd\n\n", dec_plaintext_v1->m);
-    // assert(mpz_cmp(plaintext->m, dec_plaintext_v1->m) == 0);
-
-    //test_prs_dec(dec_plaintext, keys, ciphertext);
     printf("Starting prs_decrypt\n");
     prs_decrypt(dec_plaintext, keys, ciphertext);
     gmp_printf("Original Plaintext: %Zd\n\n", plaintext->m);
@@ -67,9 +54,7 @@ int main(int argc, char *argv[])
 
     printf("All done!!\n");
     prs_plaintext_clear(plaintext);
-    // prs_plaintext_clear(dec_plaintext_v1);
     prs_plaintext_clear(dec_plaintext);
-    // prs_ciphertext_clear(ciphertext_v1);
     prs_ciphertext_clear(ciphertext);
     gmp_randclear(prng);
 
