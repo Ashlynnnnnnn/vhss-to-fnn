@@ -7,34 +7,6 @@ set(CMAKE_C_STANDARD 99)
 # Headers dir
 include_directories(src/include)
 
-# Tests
-add_executable(
-        2k-prs-test
-        # sources
-        src/tests/2k-prs.c
-
-        # utils
-        src/utils/lib-mesg.c
-        src/utils/lib-timing.c
-        src/utils/lib-misc.c
-
-        # lib sources
-        src/lib/lib-2k-prs.c)
-
-# Main
-add_executable(
-        2k-prs
-        # sources
-        src/main.c
-
-        # utils
-        src/utils/lib-mesg.c
-        src/utils/lib-timing.c
-        src/utils/lib-misc.c
-
-        # lib sources
-        src/lib/lib-2k-prs.c)
-
 # Demo
 add_executable(
         2k-prs-demo
