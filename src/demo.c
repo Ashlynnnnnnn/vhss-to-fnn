@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
 
     printf("Launching demo with k=%d, n_bits=%d\n\n", DEFAULT_MOD_BITS / 4, DEFAULT_MOD_BITS);
 
+    printf("Starting key generation\n");
     prs_generate_keys(keys, DEFAULT_MOD_BITS / 4, DEFAULT_MOD_BITS, prng);
     gmp_printf("p: %Zd\n", keys->p);
     gmp_printf("q: %Zd\n", keys->q);
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
     mpz_mul(plain_res, plain_res, z->m);
     mpz_mod(plain_res, plain_res, keys->k_2);
 
-    printf("Starting prs_encrypt\n");
+    printf("Starting sharing\n");
     prs_encrypt(cx1, keys, x1, prng, 512), prs_encrypt(cx2, keys, x2, prng, 512);
     prs_encrypt(cy1, keys, y1, prng, 512), prs_encrypt(cy2, keys, y2, prng, 512);
     prs_encrypt(cz1, keys, z1, prng, 512), prs_encrypt(cz2, keys, z2, prng, 512);
@@ -146,15 +147,20 @@ int main(int argc, char *argv[])
     mpz_mul(res->c, s1->c, s2->c);
     mpz_mod(res->c, res->c, keys->n);
     prs_decrypt(dec_res, keys, res);
-    gmp_printf("Original Plaintext: %Zd\n\n", plain_res);
+    gmp_printf("Original Result: %Zd\n\n", plain_res);
     gmp_printf("Result from Dec: %Zd\n\n", dec_res->m);
     assert(mpz_cmp(plain_res, dec_res->m) == 0);
 
     printf("All done!!\n");
-    //prs_plaintext_clear(plaintext);
-    //prs_plaintext_clear(dec_plaintext);
-    //prs_ciphertext_clear(ciphertext);
+    prs_plaintext_clear(x), prs_plaintext_clear(y), prs_plaintext_clear(z);
+    prs_plaintext_clear(x1), prs_plaintext_clear(y1), prs_plaintext_clear(z1);
+    prs_plaintext_clear(x2), prs_plaintext_clear(y2), prs_plaintext_clear(z2);
+    prs_ciphertext_clear(cx1), prs_ciphertext_clear(cx2);
+    prs_ciphertext_clear(cy1), prs_ciphertext_clear(cy2);
+    prs_ciphertext_clear(cz1), prs_ciphertext_clear(cz2);
+    prs_ciphertext_clear(s1), prs_ciphertext_clear(s2);
+    prs_ciphertext_clear(res), prs_plaintext_clear(dec_res);
     gmp_randclear(prng);
-
+    mpz_clear(plain_res);
     return 0;
 }
