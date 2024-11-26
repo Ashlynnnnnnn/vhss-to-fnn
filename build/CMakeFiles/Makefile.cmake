@@ -97,7 +97,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/2k-prs-test.dir/DependInfo.cmake"
-  "CMakeFiles/2k-prs.dir/DependInfo.cmake"
   "CMakeFiles/2k-prs-demo.dir/DependInfo.cmake"
   )

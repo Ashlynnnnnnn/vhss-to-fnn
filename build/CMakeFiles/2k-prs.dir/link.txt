@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/2k-prs.dir/src/main.c.o CMakeFiles/2k-prs.dir/src/utils/lib-mesg.c.o CMakeFiles/2k-prs.dir/src/utils/lib-timing.c.o CMakeFiles/2k-prs.dir/src/utils/lib-misc.c.o CMakeFiles/2k-prs.dir/src/lib/lib-2k-prs.c.o -o 2k-prs  -lgmp -lm -lpbc 

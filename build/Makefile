@@ -117,32 +117,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named 2k-prs-test
-
-# Build rule for target.
-2k-prs-test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 2k-prs-test
-.PHONY : 2k-prs-test
-
-# fast build rule for target.
-2k-prs-test/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/build
-.PHONY : 2k-prs-test/fast
-
-#=============================================================================
-# Target rules for targets named 2k-prs
-
-# Build rule for target.
-2k-prs: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 2k-prs
-.PHONY : 2k-prs
-
-# fast build rule for target.
-2k-prs/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/build
-.PHONY : 2k-prs/fast
-
-#=============================================================================
 # Target rules for targets named 2k-prs-demo
 
 # Build rule for target.
@@ -184,8 +158,6 @@ src/lib/lib-2k-prs.o: src/lib/lib-2k-prs.c.o
 
 # target to build an object file
 src/lib/lib-2k-prs.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/lib/lib-2k-prs.c.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/lib/lib-2k-prs.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.o
 .PHONY : src/lib/lib-2k-prs.c.o
 
@@ -194,8 +166,6 @@ src/lib/lib-2k-prs.i: src/lib/lib-2k-prs.c.i
 
 # target to preprocess a source file
 src/lib/lib-2k-prs.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/lib/lib-2k-prs.c.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/lib/lib-2k-prs.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.i
 .PHONY : src/lib/lib-2k-prs.c.i
 
@@ -204,66 +174,14 @@ src/lib/lib-2k-prs.s: src/lib/lib-2k-prs.c.s
 
 # target to generate assembly for a file
 src/lib/lib-2k-prs.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/lib/lib-2k-prs.c.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/lib/lib-2k-prs.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.s
 .PHONY : src/lib/lib-2k-prs.c.s
-
-src/main.o: src/main.c.o
-.PHONY : src/main.o
-
-# target to build an object file
-src/main.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/main.c.o
-.PHONY : src/main.c.o
-
-src/main.i: src/main.c.i
-.PHONY : src/main.i
-
-# target to preprocess a source file
-src/main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/main.c.i
-.PHONY : src/main.c.i
-
-src/main.s: src/main.c.s
-.PHONY : src/main.s
-
-# target to generate assembly for a file
-src/main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/main.c.s
-.PHONY : src/main.c.s
-
-src/tests/2k-prs.o: src/tests/2k-prs.c.o
-.PHONY : src/tests/2k-prs.o
-
-# target to build an object file
-src/tests/2k-prs.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/tests/2k-prs.c.o
-.PHONY : src/tests/2k-prs.c.o
-
-src/tests/2k-prs.i: src/tests/2k-prs.c.i
-.PHONY : src/tests/2k-prs.i
-
-# target to preprocess a source file
-src/tests/2k-prs.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/tests/2k-prs.c.i
-.PHONY : src/tests/2k-prs.c.i
-
-src/tests/2k-prs.s: src/tests/2k-prs.c.s
-.PHONY : src/tests/2k-prs.s
-
-# target to generate assembly for a file
-src/tests/2k-prs.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/tests/2k-prs.c.s
-.PHONY : src/tests/2k-prs.c.s
 
 src/utils/lib-mesg.o: src/utils/lib-mesg.c.o
 .PHONY : src/utils/lib-mesg.o
 
 # target to build an object file
 src/utils/lib-mesg.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-mesg.c.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-mesg.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.o
 .PHONY : src/utils/lib-mesg.c.o
 
@@ -272,8 +190,6 @@ src/utils/lib-mesg.i: src/utils/lib-mesg.c.i
 
 # target to preprocess a source file
 src/utils/lib-mesg.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-mesg.c.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-mesg.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.i
 .PHONY : src/utils/lib-mesg.c.i
 
@@ -282,8 +198,6 @@ src/utils/lib-mesg.s: src/utils/lib-mesg.c.s
 
 # target to generate assembly for a file
 src/utils/lib-mesg.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-mesg.c.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-mesg.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.s
 .PHONY : src/utils/lib-mesg.c.s
 
@@ -292,8 +206,6 @@ src/utils/lib-misc.o: src/utils/lib-misc.c.o
 
 # target to build an object file
 src/utils/lib-misc.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-misc.c.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-misc.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.o
 .PHONY : src/utils/lib-misc.c.o
 
@@ -302,8 +214,6 @@ src/utils/lib-misc.i: src/utils/lib-misc.c.i
 
 # target to preprocess a source file
 src/utils/lib-misc.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-misc.c.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-misc.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.i
 .PHONY : src/utils/lib-misc.c.i
 
@@ -312,8 +222,6 @@ src/utils/lib-misc.s: src/utils/lib-misc.c.s
 
 # target to generate assembly for a file
 src/utils/lib-misc.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-misc.c.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-misc.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.s
 .PHONY : src/utils/lib-misc.c.s
 
@@ -322,8 +230,6 @@ src/utils/lib-timing.o: src/utils/lib-timing.c.o
 
 # target to build an object file
 src/utils/lib-timing.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-timing.c.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-timing.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.o
 .PHONY : src/utils/lib-timing.c.o
 
@@ -332,8 +238,6 @@ src/utils/lib-timing.i: src/utils/lib-timing.c.i
 
 # target to preprocess a source file
 src/utils/lib-timing.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-timing.c.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-timing.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.i
 .PHONY : src/utils/lib-timing.c.i
 
@@ -342,8 +246,6 @@ src/utils/lib-timing.s: src/utils/lib-timing.c.s
 
 # target to generate assembly for a file
 src/utils/lib-timing.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-test.dir/build.make CMakeFiles/2k-prs-test.dir/src/utils/lib-timing.c.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs.dir/build.make CMakeFiles/2k-prs.dir/src/utils/lib-timing.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.s
 .PHONY : src/utils/lib-timing.c.s
 
@@ -355,21 +257,13 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... 2k-prs"
 	@echo "... 2k-prs-demo"
-	@echo "... 2k-prs-test"
 	@echo "... src/demo.o"
 	@echo "... src/demo.i"
 	@echo "... src/demo.s"
 	@echo "... src/lib/lib-2k-prs.o"
 	@echo "... src/lib/lib-2k-prs.i"
 	@echo "... src/lib/lib-2k-prs.s"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
-	@echo "... src/tests/2k-prs.o"
-	@echo "... src/tests/2k-prs.i"
-	@echo "... src/tests/2k-prs.s"
 	@echo "... src/utils/lib-mesg.o"
 	@echo "... src/utils/lib-mesg.i"
 	@echo "... src/utils/lib-mesg.s"

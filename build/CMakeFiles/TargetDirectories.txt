@@ -1,5 +1,3 @@
-/home/ashlynsun/demo_jl13/build/CMakeFiles/2k-prs-test.dir
-/home/ashlynsun/demo_jl13/build/CMakeFiles/2k-prs.dir
 /home/ashlynsun/demo_jl13/build/CMakeFiles/2k-prs-demo.dir
 /home/ashlynsun/demo_jl13/build/CMakeFiles/edit_cache.dir
 /home/ashlynsun/demo_jl13/build/CMakeFiles/rebuild_cache.dir
