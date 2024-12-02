@@ -34,13 +34,15 @@
 gmp_randstate_t prng;
 
 void test_prs_gen_keys(prs_keys_t keys){
+    elapsed_time_t time;
     mpz_t gcd, mod;
     mpz_inits(gcd, mod, NULL);
     long k = DEFAULT_MOD_BITS / 4; /* default: max message size 1024 bit */
     printf("Starting test prs_generate_keys_v2\n");
-
-    prs_generate_keys(keys, k, DEFAULT_MOD_BITS, prng);
-
+    perform_oneshot_clock_cycles_sampling(time, tu_millis, {
+        prs_generate_keys(keys, k, DEFAULT_MOD_BITS, prng);
+    });
+    printf_et("prs_keygen - time elapsed: ", time, tu_millis, "\n");
 
     assert(mpz_sizeinbase(keys->p, 2) >= (DEFAULT_MOD_BITS >> 1));
     assert(mpz_sizeinbase(keys->q, 2) >= DEFAULT_MOD_BITS - (DEFAULT_MOD_BITS >> 1));
