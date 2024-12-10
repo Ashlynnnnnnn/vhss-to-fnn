@@ -10,22 +10,26 @@
 #define DEFAULT_MOD_BITS 4096
 #define BENCHMARK_ITERATIONS 10
 
+#define input_number 3
+#define server_number 3
+
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
 
 gmp_randstate_t prng;
 
-void get_outcome(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z, prs_keys_t keys, mpz_t res){
-    mpz_mul(res, x->m, y->m);
+void get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res){
+    mpz_mul(res, input[0]->m, input[1]->m);
     mpz_mod(res, res, keys->k_2);
-    mpz_mul(res, res, z->m);
+    mpz_mul(res, res, input[2]->m);
     mpz_mod(res, res, keys->k_2);
 }
 
-elapsed_time_t time_get_outcome(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z, prs_keys_t keys, mpz_t res){
+elapsed_time_t time_get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res)
+{
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        get_outcome(x, y, z, keys, res);
+        get_outcome(input, keys, res);
     });
     return time;
 }
@@ -46,14 +50,14 @@ void random_split(prs_plaintext_t input, prs_plaintext_t part1, prs_plaintext_t 
     }
 }
 
-void share(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z,
+void share(prs_plaintext_t input[],
            prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
            prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
            prs_plaintext_t x2, prs_plaintext_t y2, prs_plaintext_t z2,
            prs_plaintext_t x1, prs_plaintext_t y1, prs_plaintext_t z1){
-    random_split(x, x1, x2);
-    random_split(y, y1, y2);
-    random_split(z, z1, z2);
+    random_split(input[0], x1, x2);
+    random_split(input[1], y1, y2);
+    random_split(input[2], z1, z2);
     prs_encrypt(enc_x1, keys, x1, prng, 512), prs_encrypt(enc_x2, keys, x2, prng, 512);
     prs_encrypt(enc_y1, keys, y1, prng, 512), prs_encrypt(enc_y2, keys, y2, prng, 512);
     prs_encrypt(enc_z1, keys, z1, prng, 512), prs_encrypt(enc_z2, keys, z2, prng, 512);
@@ -61,7 +65,7 @@ void share(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z,
     gmp_printf("S2 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", x1->m, y1->m, z1->m, enc_x2->c, enc_y2->c, enc_z2->c);
 }
 
-elapsed_time_t time_share(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z,
+elapsed_time_t time_share(prs_plaintext_t input[],
                           prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
                           prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
                           prs_plaintext_t x2, prs_plaintext_t y2, prs_plaintext_t z2,
@@ -69,7 +73,7 @@ elapsed_time_t time_share(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t 
 {
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        share(x, y, z, keys, enc_x1, enc_y1, enc_z1, enc_x2, enc_y2, enc_z2, x2, y2, z2, x1, y1, z1);
+        share(input, keys, enc_x1, enc_y1, enc_z1, enc_x2, enc_y2, enc_z2, x2, y2, z2, x1, y1, z1);
     });
     return time;
 }
@@ -152,8 +156,10 @@ int main(int argc, char *argv[])
     set_messaging_level(msg_very_verbose); // level of detail of input
 
     prs_keys_t keys;
-    prs_plaintext_t x, y, z, x1, x2, y1, y2, z1, z2;
-    prs_plaintext_init(x), prs_plaintext_init(y), prs_plaintext_init(z);
+    prs_plaintext_t input[input_number], x1, x2, y1, y2, z1, z2;
+    for(int i=0;i<input_number;i++){
+        prs_plaintext_init(input[i]);
+    }
     prs_plaintext_init(x1), prs_plaintext_init(y1), prs_plaintext_init(z1);
     prs_plaintext_init(x2), prs_plaintext_init(y2), prs_plaintext_init(z2);
     prs_ciphertext_t cx1, cx2, cy1, cy2, cz1, cz2;
@@ -182,18 +188,18 @@ int main(int argc, char *argv[])
     gmp_printf("2^k: %Zd\n\n", keys->k_2);
 
     // Direct computation
-    mpz_urandomb(x->m, prng, keys->k);
-    mpz_urandomb(y->m, prng, keys->k);
-    mpz_urandomb(z->m, prng, keys->k);
+    for(int i=0;i<input_number;i++){
+        mpz_urandomb(input[i]->m, prng, keys->k);
+    }
     mpz_t plain_res;
     mpz_init(plain_res);
     elapsed_time_t direct_computation_time;
-    direct_computation_time = time_get_outcome(x, y, z, keys, plain_res);
+    direct_computation_time = time_get_outcome(input, keys, plain_res);
 
     // Sharing
     printf("Starting sharing\n");
     elapsed_time_t share_time;
-    share_time = time_share(x, y, z, keys, cx1, cy1, cz1, cx2, cy2, cz2, x2, y2, z2, x1, y1, z1);
+    share_time = time_share(input, keys, cx1, cy1, cz1, cx2, cy2, cz2, x2, y2, z2, x1, y1, z1);
     printf_et("Sharing time elapsed: ", share_time, tu_millis, "\n\n");
 
     // S1's evaluation
@@ -230,7 +236,9 @@ int main(int argc, char *argv[])
     printf_et("Direct computation time elapsed: ", direct_computation_time, tu_millis, "\n\n");
 
     printf("All done!!\n");
-    prs_plaintext_clear(x), prs_plaintext_clear(y), prs_plaintext_clear(z);
+    for(int i=0;i<input_number;i++){
+        prs_plaintext_clear(input[i]);
+    }
     prs_plaintext_clear(x1), prs_plaintext_clear(y1), prs_plaintext_clear(z1);
     prs_plaintext_clear(x2), prs_plaintext_clear(y2), prs_plaintext_clear(z2);
     prs_ciphertext_clear(cx1), prs_ciphertext_clear(cx2);
