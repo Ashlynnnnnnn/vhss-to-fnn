@@ -11,7 +11,7 @@
 #define BENCHMARK_ITERATIONS 10
 
 #define input_number 3
-#define server_number 3
+#define server_number 2
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
@@ -34,58 +34,57 @@ elapsed_time_t time_get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t 
     return time;
 }
 
-void random_split(prs_plaintext_t input, prs_plaintext_t part1, prs_plaintext_t part2)
+void random_split(prs_plaintext_t input, prs_plaintext_t parts[], prs_keys_t keys)
 {
-    mpz_urandomm(part1->m, prng, input->m);
-    if (mpz_cmp_ui(part1->m, 0) == 0)
-    {
-        mpz_set_ui(part1->m, 1);
+    mpz_t sum_of_parts;
+    mpz_init(sum_of_parts);
+    mpz_set_ui(sum_of_parts, 0);
+    for(int i=0;i<server_number-1;i++){
+        mpz_urandomm(parts[i]->m, prng, input->m);
+        mpz_add(sum_of_parts, sum_of_parts, parts[i]->m);
     }
-
-    mpz_sub(part2->m, input->m, part1->m);
-    if (mpz_cmp_ui(part2->m, 0) <= 0)
-    {
-        mpz_set_ui(part2->m, 1);
-        mpz_sub_ui(part1->m, input->m, 1);
+    mpz_sub(parts[server_number-1]->m, input->m, sum_of_parts);
+    for(int i=0;i<server_number;i++){
+        mpz_mod(parts[i]->m, parts[i]->m, keys->k_2);
+        //gmp_printf("Part %d of %Zd is %Zd\n", i, input, parts[i]);
     }
+    mpz_clear(sum_of_parts);
 }
 
 void share(prs_plaintext_t input[],
            prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
            prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
-           prs_plaintext_t x2, prs_plaintext_t y2, prs_plaintext_t z2,
-           prs_plaintext_t x1, prs_plaintext_t y1, prs_plaintext_t z1){
-    random_split(input[0], x1, x2);
-    random_split(input[1], y1, y2);
-    random_split(input[2], z1, z2);
-    prs_encrypt(enc_x1, keys, x1, prng, 512), prs_encrypt(enc_x2, keys, x2, prng, 512);
-    prs_encrypt(enc_y1, keys, y1, prng, 512), prs_encrypt(enc_y2, keys, y2, prng, 512);
-    prs_encrypt(enc_z1, keys, z1, prng, 512), prs_encrypt(enc_z2, keys, z2, prng, 512);
-    gmp_printf("S1 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", enc_x1->c, enc_y1->c, enc_z1->c, x2->m, y2->m, z2->m);
-    gmp_printf("S2 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", x1->m, y1->m, z1->m, enc_x2->c, enc_y2->c, enc_z2->c);
+           prs_plaintext_t ss[][server_number]){
+    for(int i=0;i<input_number;i++){
+        random_split(input[i], ss[i], keys);
+    }
+    prs_encrypt(enc_x1, keys, ss[0][0], prng, 512), prs_encrypt(enc_x2, keys, ss[0][1], prng, 512);
+    prs_encrypt(enc_y1, keys, ss[1][0], prng, 512), prs_encrypt(enc_y2, keys, ss[1][1], prng, 512);
+    prs_encrypt(enc_z1, keys, ss[2][0], prng, 512), prs_encrypt(enc_z2, keys, ss[2][1], prng, 512);
+    gmp_printf("S1 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", enc_x1->c, enc_y1->c, enc_z1->c, ss[0][1]->m, ss[1][1]->m, ss[2][1]->m);
+    gmp_printf("S2 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", ss[0][0]->m, ss[1][0]->m, ss[2][0]->m, enc_x2->c, enc_y2->c, enc_z2->c);
 }
 
 elapsed_time_t time_share(prs_plaintext_t input[],
                           prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
                           prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
-                          prs_plaintext_t x2, prs_plaintext_t y2, prs_plaintext_t z2,
-                          prs_plaintext_t x1, prs_plaintext_t y1, prs_plaintext_t z1)
+                          prs_plaintext_t ss[][server_number])
 {
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        share(input, keys, enc_x1, enc_y1, enc_z1, enc_x2, enc_y2, enc_z2, x2, y2, z2, x1, y1, z1);
+        share(input, keys, enc_x1, enc_y1, enc_z1, enc_x2, enc_y2, enc_z2, ss);
     });
     return time;
 }
 
-void sub_eval(prs_plaintext_t a, prs_plaintext_t b, prs_ciphertext_t e, prs_ciphertext_t res, prs_keys_t kk){
+void sub_eval(mpz_t a, mpz_t b, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
     mpz_t t;
     mpz_init(t);
 
-    mpz_mul(t ,a->m, b->m);
+    mpz_mul(t ,a, b);
     mpz_mod(t, t, kk->k_2);
 
-    mpz_powm(t, e->c, t, kk->n);
+    mpz_powm(t, e, t, kk->n);
 
     mpz_mul(res->c, res->c, t);
     mpz_mod(res->c, res->c, kk->n);
@@ -93,13 +92,13 @@ void sub_eval(prs_plaintext_t a, prs_plaintext_t b, prs_ciphertext_t e, prs_ciph
     mpz_clear(t);
 }
 
-void plain_eval(prs_plaintext_t a, prs_plaintext_t b, prs_plaintext_t e, prs_ciphertext_t res, prs_keys_t kk){
+void plain_eval(mpz_t a, mpz_t b, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
     prs_plaintext_t t;
     prs_plaintext_init(t);
 
-    mpz_mul(t->m, a->m, b->m);
+    mpz_mul(t->m, a, b);
     mpz_mod(t->m, t->m, kk->k_2);
-    mpz_mul(t->m, t->m, e->m);
+    mpz_mul(t->m, t->m, e);
     mpz_mod(t->m, t->m, kk->k_2);
 
     prs_ciphertext_t ct;
@@ -113,17 +112,18 @@ void plain_eval(prs_plaintext_t a, prs_plaintext_t b, prs_plaintext_t e, prs_cip
     prs_ciphertext_clear(ct);
 }
 
-void evaluate(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z, prs_ciphertext_t cx, prs_ciphertext_t cy, prs_ciphertext_t cz, prs_ciphertext_t s, prs_keys_t keys){
-    sub_eval(y, z, cx, s, keys);
-    sub_eval(x, z, cy, s, keys);
-    sub_eval(x, y, cz, s, keys);
-    plain_eval(x, y, z, s, keys);
+void evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t keys, int index){
+    sub_eval(eval_parts[1][1-index], eval_parts[2][1-index], eval_parts[0][index], s, keys);
+    sub_eval(eval_parts[0][1-index], eval_parts[2][1-index], eval_parts[1][index], s, keys);
+    sub_eval(eval_parts[0][1-index], eval_parts[1][1-index], eval_parts[2][index], s, keys);
+    plain_eval(eval_parts[0][1 - index], eval_parts[1][1 - index], eval_parts[2][1-index], s, keys);
 }
 
-elapsed_time_t time_evaluate(prs_plaintext_t x, prs_plaintext_t y, prs_plaintext_t z, prs_ciphertext_t cx, prs_ciphertext_t cy, prs_ciphertext_t cz, prs_ciphertext_t s, prs_keys_t keys){
+elapsed_time_t time_evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t keys, int index)
+{
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        evaluate(x, y, z, cx, cy, cz, s, keys);
+        evaluate(eval_parts, s, keys, index);
     });
     return time;
 }
@@ -156,12 +156,15 @@ int main(int argc, char *argv[])
     set_messaging_level(msg_very_verbose); // level of detail of input
 
     prs_keys_t keys;
-    prs_plaintext_t input[input_number], x1, x2, y1, y2, z1, z2;
+    prs_plaintext_t input[input_number], ss[input_number][server_number];
+    mpz_t eval_parts[input_number][server_number];
     for(int i=0;i<input_number;i++){
         prs_plaintext_init(input[i]);
+        for(int j=0;j<server_number;j++){
+            prs_plaintext_init(ss[i][j]);
+            mpz_init(eval_parts[i][j]);
+        }
     }
-    prs_plaintext_init(x1), prs_plaintext_init(y1), prs_plaintext_init(z1);
-    prs_plaintext_init(x2), prs_plaintext_init(y2), prs_plaintext_init(z2);
     prs_ciphertext_t cx1, cx2, cy1, cy2, cz1, cz2;
     prs_ciphertext_init(cx1), prs_ciphertext_init(cx2);
     prs_ciphertext_init(cy1), prs_ciphertext_init(cy2);
@@ -199,7 +202,7 @@ int main(int argc, char *argv[])
     // Sharing
     printf("Starting sharing\n");
     elapsed_time_t share_time;
-    share_time = time_share(input, keys, cx1, cy1, cz1, cx2, cy2, cz2, x2, y2, z2, x1, y1, z1);
+    share_time = time_share(input, keys, cx1, cy1, cz1, cx2, cy2, cz2, ss);
     printf_et("Sharing time elapsed: ", share_time, tu_millis, "\n\n");
 
     // S1's evaluation
@@ -207,8 +210,18 @@ int main(int argc, char *argv[])
     prs_ciphertext_t s1;
     prs_ciphertext_init(s1);
     mpz_set_ui(s1->c, 1);
+    for(int i=0;i<input_number;i++){
+        for(int j=0;j<server_number;j++){
+            if(j != 0){
+                mpz_set(eval_parts[i][j], ss[i][j]->m);
+            }
+        }
+    }
+    mpz_set(eval_parts[0][0], cx1->c);
+    mpz_set(eval_parts[1][0], cy1->c);
+    mpz_set(eval_parts[2][0], cz1->c);
     elapsed_time_t eval_time_1;
-    eval_time_1 = time_evaluate(x2, y2, z2, cx1, cy1, cz1, s1, keys);
+    eval_time_1 = time_evaluate(eval_parts, s1, keys, 0);
     printf_et("S1's evaluation time elapsed: ", eval_time_1, tu_millis, "\n");
     gmp_printf("S1 outputs: %Zd\n\n", s1->c);
 
@@ -217,8 +230,21 @@ int main(int argc, char *argv[])
     prs_ciphertext_t s2;
     prs_ciphertext_init(s2);
     mpz_set_ui(s2->c, 1);
+    for (int i = 0; i < input_number; i++)
+    {
+        for (int j = 0; j < server_number; j++)
+        {
+            if (j != 1)
+            {
+                mpz_set(eval_parts[i][j], ss[i][j]->m);
+            }
+        }
+    }
+    mpz_set(eval_parts[0][1], cx2->c);
+    mpz_set(eval_parts[1][1], cy2->c);
+    mpz_set(eval_parts[2][1], cz2->c);
     elapsed_time_t eval_time_2;
-    eval_time_2 = time_evaluate(x1, y1, z1, cx2, cy2, cz2, s2, keys);
+    eval_time_2 = time_evaluate(eval_parts, s2, keys, 1);
     printf_et("S2's evaluation time elapsed: ", eval_time_2, tu_millis, "\n");
     gmp_printf("S2 outputs: %Zd\n\n", s2->c);
 
@@ -238,9 +264,11 @@ int main(int argc, char *argv[])
     printf("All done!!\n");
     for(int i=0;i<input_number;i++){
         prs_plaintext_clear(input[i]);
+        for(int j=0;j<server_number;j++){
+            prs_plaintext_clear(ss[i][j]);
+            mpz_clear(eval_parts[i][j]);
+        }
     }
-    prs_plaintext_clear(x1), prs_plaintext_clear(y1), prs_plaintext_clear(z1);
-    prs_plaintext_clear(x2), prs_plaintext_clear(y2), prs_plaintext_clear(z2);
     prs_ciphertext_clear(cx1), prs_ciphertext_clear(cx2);
     prs_ciphertext_clear(cy1), prs_ciphertext_clear(cy2);
     prs_ciphertext_clear(cz1), prs_ciphertext_clear(cz2);
