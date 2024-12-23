@@ -11,7 +11,7 @@
 #define BENCHMARK_ITERATIONS 10
 
 #define input_number 3
-#define server_number 2
+#define server_number 10
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
@@ -121,10 +121,37 @@ void evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t 
     {
         mpz_set(eval_parts[i][index], enc_share[i][index]->c);
     }
-    sub_eval(eval_parts[1][1-index], eval_parts[2][1-index], eval_parts[0][index], s, keys);
-    sub_eval(eval_parts[0][1-index], eval_parts[2][1-index], eval_parts[1][index], s, keys);
-    sub_eval(eval_parts[0][1-index], eval_parts[1][1-index], eval_parts[2][index], s, keys);
-    plain_eval(eval_parts[0][1 - index], eval_parts[1][1 - index], eval_parts[2][1-index], s, keys);
+    if(index == 0){
+        for(int i=1;i<server_number;i++){
+            for(int j=1;j<server_number;j++){
+                for(int k=1;k<server_number;k++){
+                    plain_eval(eval_parts[0][i], eval_parts[1][j], eval_parts[2][k], s, keys);
+                }
+            }
+        }
+        for(int i=0;i<input_number;i++){
+            int t1 = (i+1) % input_number;
+            int t2 = (i+2) % input_number;
+            for(int j=1;j<server_number;j++){
+                for(int k=1;k<server_number;k++){
+                    sub_eval(eval_parts[t1][j], eval_parts[t2][k], eval_parts[i][0], s, keys);
+                }
+            }
+        }
+    }
+    if(index == 1){
+        plain_eval(eval_parts[0][0], eval_parts[1][0], eval_parts[2][0], s, keys);
+        for (int i = 0; i < input_number; i++)
+        {
+            int t1 = (i + 1) % input_number;
+            int t2 = (i + 2) % input_number;
+            sub_eval(eval_parts[t1][0], eval_parts[t2][0], eval_parts[i][1], s, keys);
+            for (int j = 2; j < server_number; j++)
+            {
+                plain_eval(eval_parts[t1][0], eval_parts[t2][0], eval_parts[i][j], s, keys);
+            }
+        }
+    }
 }
 
 elapsed_time_t time_evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t keys, int index, prs_plaintext_t ss[][server_number], prs_ciphertext_t enc_share[][server_number])
