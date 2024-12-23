@@ -51,28 +51,20 @@ void random_split(prs_plaintext_t input, prs_plaintext_t parts[], prs_keys_t key
     mpz_clear(sum_of_parts);
 }
 
-void share(prs_plaintext_t input[],
-           prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
-           prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
-           prs_plaintext_t ss[][server_number]){
+void share(prs_plaintext_t input[], prs_keys_t keys, prs_ciphertext_t enc_s[][server_number], prs_plaintext_t ss[][server_number]){
     for(int i=0;i<input_number;i++){
         random_split(input[i], ss[i], keys);
+        for(int j=0;j<server_number;j++){
+            prs_encrypt(enc_s[i][j], keys, ss[i][j], prng, 512);
+        }
     }
-    prs_encrypt(enc_x1, keys, ss[0][0], prng, 512), prs_encrypt(enc_x2, keys, ss[0][1], prng, 512);
-    prs_encrypt(enc_y1, keys, ss[1][0], prng, 512), prs_encrypt(enc_y2, keys, ss[1][1], prng, 512);
-    prs_encrypt(enc_z1, keys, ss[2][0], prng, 512), prs_encrypt(enc_z2, keys, ss[2][1], prng, 512);
-    gmp_printf("S1 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", enc_x1->c, enc_y1->c, enc_z1->c, ss[0][1]->m, ss[1][1]->m, ss[2][1]->m);
-    gmp_printf("S2 gets: %Zd, %Zd, %Zd, %Zd, %Zd, %Zd\n", ss[0][0]->m, ss[1][0]->m, ss[2][0]->m, enc_x2->c, enc_y2->c, enc_z2->c);
 }
 
-elapsed_time_t time_share(prs_plaintext_t input[],
-                          prs_keys_t keys, prs_ciphertext_t enc_x1, prs_ciphertext_t enc_y1, prs_ciphertext_t enc_z1,
-                          prs_ciphertext_t enc_x2, prs_ciphertext_t enc_y2, prs_ciphertext_t enc_z2,
-                          prs_plaintext_t ss[][server_number])
+elapsed_time_t time_share(prs_plaintext_t input[], prs_keys_t keys, prs_ciphertext_t enc_s[][server_number], prs_plaintext_t ss[][server_number])
 {
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        share(input, keys, enc_x1, enc_y1, enc_z1, enc_x2, enc_y2, enc_z2, ss);
+        share(input, keys, enc_s, ss);
     });
     return time;
 }
@@ -158,17 +150,15 @@ int main(int argc, char *argv[])
     prs_keys_t keys;
     prs_plaintext_t input[input_number], ss[input_number][server_number];
     mpz_t eval_parts[input_number][server_number];
+    prs_ciphertext_t enc_share[input_number][server_number];
     for(int i=0;i<input_number;i++){
         prs_plaintext_init(input[i]);
         for(int j=0;j<server_number;j++){
             prs_plaintext_init(ss[i][j]);
             mpz_init(eval_parts[i][j]);
+            prs_ciphertext_init(enc_share[i][j]);
         }
     }
-    prs_ciphertext_t cx1, cx2, cy1, cy2, cz1, cz2;
-    prs_ciphertext_init(cx1), prs_ciphertext_init(cx2);
-    prs_ciphertext_init(cy1), prs_ciphertext_init(cy2);
-    prs_ciphertext_init(cz1), prs_ciphertext_init(cz2);
 
     printf("Launching demo with k=%d, n_bits=%d\n\n", DEFAULT_MOD_BITS / 4, DEFAULT_MOD_BITS);
 
@@ -202,7 +192,7 @@ int main(int argc, char *argv[])
     // Sharing
     printf("Starting sharing\n");
     elapsed_time_t share_time;
-    share_time = time_share(input, keys, cx1, cy1, cz1, cx2, cy2, cz2, ss);
+    share_time = time_share(input, keys, enc_share, ss);
     printf_et("Sharing time elapsed: ", share_time, tu_millis, "\n\n");
 
     // S1's evaluation
@@ -217,9 +207,9 @@ int main(int argc, char *argv[])
             }
         }
     }
-    mpz_set(eval_parts[0][0], cx1->c);
-    mpz_set(eval_parts[1][0], cy1->c);
-    mpz_set(eval_parts[2][0], cz1->c);
+    for(int i=0;i<input_number;i++){
+        mpz_set(eval_parts[i][0], enc_share[i][0]->c);
+    }
     elapsed_time_t eval_time_1;
     eval_time_1 = time_evaluate(eval_parts, s1, keys, 0);
     printf_et("S1's evaluation time elapsed: ", eval_time_1, tu_millis, "\n");
@@ -240,9 +230,10 @@ int main(int argc, char *argv[])
             }
         }
     }
-    mpz_set(eval_parts[0][1], cx2->c);
-    mpz_set(eval_parts[1][1], cy2->c);
-    mpz_set(eval_parts[2][1], cz2->c);
+    for (int i = 0; i < input_number; i++)
+    {
+        mpz_set(eval_parts[i][1], enc_share[i][1]->c);
+    }
     elapsed_time_t eval_time_2;
     eval_time_2 = time_evaluate(eval_parts, s2, keys, 1);
     printf_et("S2's evaluation time elapsed: ", eval_time_2, tu_millis, "\n");
@@ -267,11 +258,9 @@ int main(int argc, char *argv[])
         for(int j=0;j<server_number;j++){
             prs_plaintext_clear(ss[i][j]);
             mpz_clear(eval_parts[i][j]);
+            prs_ciphertext_clear(enc_share[i][j]);
         }
     }
-    prs_ciphertext_clear(cx1), prs_ciphertext_clear(cx2);
-    prs_ciphertext_clear(cy1), prs_ciphertext_clear(cy2);
-    prs_ciphertext_clear(cz1), prs_ciphertext_clear(cz2);
     prs_ciphertext_clear(s1), prs_ciphertext_clear(s2);
     prs_plaintext_clear(dec_res);
     gmp_randclear(prng);
