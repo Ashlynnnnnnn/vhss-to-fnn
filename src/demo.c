@@ -10,21 +10,48 @@
 #define DEFAULT_MOD_BITS 4096
 #define BENCHMARK_ITERATIONS 10
 
-#define input_number 3
+#define input_number 1
 #define server_number 10
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
 
+int current[server_number], remaining_degree;
+
 gmp_randstate_t prng;
 
-mpz_t eval_parts[input_number][server_number];
+mpz_t eval_parts[input_number][server_number], comp[19], added_value, times;
+
+void combination(mpz_t result, int x, int y)
+{
+    mpz_t temp, temp_y, temp_i, comb;
+    mpz_init_set_ui(comb, 1);
+    mpz_init(temp);
+    mpz_init_set_ui(temp_y, y);
+    mpz_init(temp_i);
+
+    for (int i = 1; i <= x; i++)
+    {
+        mpz_set_ui(temp_i, i);
+        mpz_sub_ui(temp, temp_y, x - i);
+        mpz_mul(comb, comb, temp);
+        mpz_divexact(comb, comb, temp_i);
+    }
+
+    mpz_mul(result, result, comb);
+
+    mpz_clear(temp);
+    mpz_clear(temp_y);
+    mpz_clear(temp_i);
+    mpz_clear(comb);
+}
 
 void get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res){
-    mpz_mul(res, input[0]->m, input[1]->m);
-    mpz_mod(res, res, keys->k_2);
-    mpz_mul(res, res, input[2]->m);
-    mpz_mod(res, res, keys->k_2);
+    mpz_t expp;
+    mpz_init(expp);
+    mpz_set_ui(expp, 19);
+    mpz_powm(res, input[0]->m, expp, keys->k_2);
+    mpz_clear(expp);
 }
 
 elapsed_time_t time_get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res)
@@ -71,14 +98,19 @@ elapsed_time_t time_share(prs_plaintext_t input[], prs_keys_t keys, prs_cipherte
     return time;
 }
 
-void sub_eval(mpz_t a, mpz_t b, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
+void sub_eval(mpz_t component[], int len, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
     mpz_t t;
     mpz_init(t);
+    mpz_set_ui(t, 1);
 
-    mpz_mul(t ,a, b);
-    mpz_mod(t, t, kk->k_2);
+    for (int i = 0; i < len; i++)
+    {
+        mpz_mul(t, t, component[i]);
+        mpz_mod(t, t, kk->k_2);
+    }
 
     mpz_powm(t, e, t, kk->n);
+    mpz_powm(t, t, times, kk->n);
 
     mpz_mul(res->c, res->c, t);
     mpz_mod(res->c, res->c, kk->n);
@@ -86,24 +118,79 @@ void sub_eval(mpz_t a, mpz_t b, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
     mpz_clear(t);
 }
 
-void plain_eval(mpz_t a, mpz_t b, mpz_t e, prs_ciphertext_t res, prs_keys_t kk){
+void plain_eval(mpz_t component[], int len, prs_ciphertext_t res, prs_keys_t kk){
     prs_plaintext_t t;
     prs_plaintext_init(t);
+    mpz_set_ui(t->m, 1);
 
-    mpz_mul(t->m, a, b);
-    mpz_mod(t->m, t->m, kk->k_2);
-    mpz_mul(t->m, t->m, e);
-    mpz_mod(t->m, t->m, kk->k_2);
+    for(int i=0;i<len;i++){
+        mpz_mul(t->m, t->m, component[i]);
+        mpz_mod(t->m, t->m, kk->k_2);
+    }
 
     prs_ciphertext_t ct;
     prs_ciphertext_init(ct);
     prs_encrypt(ct, kk, t, prng, 512);
 
+    mpz_powm(ct->c, ct->c, times, kk->n);
     mpz_mul(res->c, res->c, ct->c);
     mpz_mod(res->c, res->c, kk->n);
 
     prs_plaintext_clear(t);
     prs_ciphertext_clear(ct);
+}
+
+void generateCombinations(int index, int pos, int currentSum, prs_keys_t keys, prs_ciphertext_t s)
+{
+    if (pos == index)
+    {
+        if (currentSum <= 19)
+        {
+            mpz_set_ui(times, 1), remaining_degree = 19;
+            //printf("currentSum = %d\n", currentSum);
+            for(int i=0;i<index;i++){
+                mpz_powm_ui(comp[i], eval_parts[0][i], current[i], keys->k_2);
+                combination(times, current[i], remaining_degree);
+                remaining_degree -= current[i];
+                //gmp_printf("current[%d] = %d, times=%Zd\n", i, current[i], times);
+            }
+            //gmp_printf("Final times=%Zd\n", times);
+            if(index == server_number - 1 && currentSum == 19){
+                //printf("Start plain_eval\n");
+                plain_eval(comp, index, s, keys);
+            }
+            if(index != server_number-1){
+                //printf("Start plain_eval\n");
+                mpz_powm_ui(comp[index], added_value, 19 - currentSum, keys->k_2);
+                plain_eval(comp, index + 1, s, keys);
+            }
+            if(currentSum < 19){
+                //printf("Fullfil the first step of sub_eval\n");
+                mpz_mul_ui(times, times, remaining_degree);
+                //gmp_printf("Upgraded times=%Zd\n", times);
+                if(index == server_number - 1 && currentSum == 18){
+                    //printf("Start sub_eval\n");
+                    sub_eval(comp, index, eval_parts[0][index], s, keys);
+                }
+                if(index != server_number-1){
+                    //printf("Start sub_eval\n");
+                    mpz_powm_ui(comp[index], added_value, 18 - currentSum, keys->k_2);
+                    sub_eval(comp, index + 1, eval_parts[0][index], s, keys);
+                }
+            }
+            //printf("------End of this case------\n\n");
+        }
+        return;
+    }
+    for (int i = 2; i <= 19; i++)
+    {
+        if (currentSum + i > 19)
+        {
+            continue;
+        }
+        current[pos] = i;
+        generateCombinations(index, pos + 1, currentSum + i, keys, s);
+    }
 }
 
 void evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t keys, int index, prs_plaintext_t ss[][server_number], prs_ciphertext_t enc_share[][server_number]){
@@ -121,36 +208,10 @@ void evaluate(mpz_t eval_parts[][server_number], prs_ciphertext_t s, prs_keys_t 
     {
         mpz_set(eval_parts[i][index], enc_share[i][index]->c);
     }
-    if(index == 0){
-        for(int i=1;i<server_number;i++){
-            for(int j=1;j<server_number;j++){
-                for(int k=1;k<server_number;k++){
-                    plain_eval(eval_parts[0][i], eval_parts[1][j], eval_parts[2][k], s, keys);
-                }
-            }
-        }
-        for(int i=0;i<input_number;i++){
-            int t1 = (i+1) % input_number;
-            int t2 = (i+2) % input_number;
-            for(int j=1;j<server_number;j++){
-                for(int k=1;k<server_number;k++){
-                    sub_eval(eval_parts[t1][j], eval_parts[t2][k], eval_parts[i][0], s, keys);
-                }
-            }
-        }
-    }
-    if(index == 1){
-        plain_eval(eval_parts[0][0], eval_parts[1][0], eval_parts[2][0], s, keys);
-        for (int i = 0; i < input_number; i++)
-        {
-            int t1 = (i + 1) % input_number;
-            int t2 = (i + 2) % input_number;
-            sub_eval(eval_parts[t1][0], eval_parts[t2][0], eval_parts[i][1], s, keys);
-            for (int j = 2; j < server_number; j++)
-            {
-                plain_eval(eval_parts[t1][0], eval_parts[t2][0], eval_parts[i][j], s, keys);
-            }
-        }
+    generateCombinations(index, 0, 0, keys, s);
+    if(index != server_number-1){
+        mpz_sub(added_value, added_value, eval_parts[0][index + 1]);
+        mpz_mod(added_value, added_value, keys->k_2);
     }
 }
 
@@ -209,6 +270,11 @@ int main(int argc, char *argv[])
         prs_ciphertext_init(s[j]);
         mpz_set_ui(s[j]->c, 1);
     }
+    for(int i=0;i<19;i++){
+        mpz_init(comp[i]);
+        mpz_set_ui(comp[i], 1);
+    }
+    mpz_init(added_value), mpz_init_set_ui(times, 1);
     printf("Launching demo with k=%d, n_bits=%d\n\n", DEFAULT_MOD_BITS / 4, DEFAULT_MOD_BITS);
 
     printf("Calibrating timing tools...\n\n");
@@ -243,6 +309,12 @@ int main(int argc, char *argv[])
     elapsed_time_t share_time;
     share_time = time_share(input, keys, enc_share, ss);
     printf_et("Sharing time elapsed: ", share_time, tu_millis, "\n\n");
+
+    for (int i = 1; i < server_number; i++)
+    {
+        mpz_add(added_value, added_value, ss[0][i]->m);
+    }
+    mpz_mod(added_value, added_value, keys->k_2);
 
     //evaluation
     elapsed_time_t eval_time[server_number];
