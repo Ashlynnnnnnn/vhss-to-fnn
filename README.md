@@ -1,6 +1,6 @@
 # BHJL13&LMS-based HSS: easy demo
 
-a 2-server 3-degree HSS scheme constructed by LMS frame using BHJL13 as the underlying linear HE ($f(x,y,z)=xyz$)
+a 10-server 19-degree HSS scheme constructed by LMS frame using BHJL13 as the underlying linear HE ($f(x)=x^{19}$)
 
 > an easy example of LMS
 
