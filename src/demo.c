@@ -14,6 +14,7 @@
 #define server_number 10
 #define data_group 2010
 #define degree 18
+#define coefficient 2
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
@@ -53,6 +54,8 @@ void get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res){
     mpz_init(expp);
     mpz_set_ui(expp, degree);
     mpz_powm(res, input[0]->m, expp, keys->k_2);
+    mpz_mul_ui(res, res, coefficient);
+    mpz_mod(res, res, keys->k_2);
     mpz_clear(expp);
 }
 
@@ -111,6 +114,9 @@ void sub_eval(mpz_t component[], int len, mpz_t e, prs_ciphertext_t res, prs_key
         mpz_mod(t, t, kk->k_2);
     }
 
+    mpz_mul_ui(t, t, coefficient);
+    mpz_mod(t, t, kk->k_2);
+
     mpz_powm(t, e, t, kk->n);
     mpz_powm(t, t, times, kk->n);
 
@@ -129,6 +135,9 @@ void plain_eval(mpz_t component[], int len, prs_ciphertext_t res, prs_keys_t kk)
         mpz_mul(t->m, t->m, component[i]);
         mpz_mod(t->m, t->m, kk->k_2);
     }
+
+    mpz_mul_ui(t->m, t->m, coefficient);
+    mpz_mod(t->m, t->m, kk->k_2);
 
     prs_ciphertext_t ct;
     prs_ciphertext_init(ct);
