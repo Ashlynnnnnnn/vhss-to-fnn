@@ -13,6 +13,7 @@
 #define input_number 1
 #define server_number 10
 #define data_group 2010
+#define degree 18
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
@@ -21,7 +22,7 @@ int current[server_number], remaining_degree, tmp, restore[data_group][server_nu
 
 gmp_randstate_t prng;
 
-mpz_t eval_parts[input_number][server_number], comp[19], added_value, times;
+mpz_t eval_parts[input_number][server_number], comp[degree], added_value, times;
 
 void combination(mpz_t result, int x, int y)
 {
@@ -50,7 +51,7 @@ void combination(mpz_t result, int x, int y)
 void get_outcome(prs_plaintext_t input[], prs_keys_t keys, mpz_t res){
     mpz_t expp;
     mpz_init(expp);
-    mpz_set_ui(expp, 19);
+    mpz_set_ui(expp, degree);
     mpz_powm(res, input[0]->m, expp, keys->k_2);
     mpz_clear(expp);
 }
@@ -145,10 +146,10 @@ void generateCombinations(int index, int pos, int currentSum)
 {
     if (pos == index)
     {
-        if (currentSum <= 19)
+        if (currentSum <= degree)
         {
             //printf("currentSum = %d\n", currentSum);
-            if(index == server_number - 1 && currentSum < 18){
+            if(index == server_number - 1 && currentSum < degree-1){
                 return;
             }else{
                 for(int i=0;i<index;i++){
@@ -159,9 +160,9 @@ void generateCombinations(int index, int pos, int currentSum)
         }
         return;
     }
-    for (int i = 2; i <= 19; i++)
+    for (int i = 2; i <= degree; i++)
     {
-        if (currentSum + i > 19)
+        if (currentSum + i > degree)
         {
             continue;
         }
@@ -174,7 +175,7 @@ void evaluate(prs_ciphertext_t s, prs_keys_t keys, int index, prs_plaintext_t ss
     //tmp = 0;
     //generateCombinations(index, 0, 0, keys, s);
     for(int i=0;i<size;i++){
-        mpz_set_ui(times, 1), remaining_degree = 19;
+        mpz_set_ui(times, 1), remaining_degree = degree;
         for (int j = 0; j < index; j++)
         {
             mpz_powm_ui(comp[j], eval_parts[0][j], restore[i][j], keys->k_2);
@@ -268,7 +269,7 @@ int main(int argc, char *argv[])
         prs_ciphertext_init(s[j]);
         mpz_set_ui(s[j]->c, 1);
     }
-    for(int i=0;i<19;i++){
+    for(int i=0;i<degree;i++){
         mpz_init(comp[i]);
         mpz_set_ui(comp[i], 1);
     }
