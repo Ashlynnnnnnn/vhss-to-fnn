@@ -245,15 +245,15 @@ void generateResult(int index, int part, int currentSum, int total_index, prs_ke
     for (int value = 0; value <= current[index] - currentSum && part_sums[part] + value <= degree[part]; value++)
     {
         // 给第i部分分配的值为value
-        //remaining_sum = 0;
-        //for (int j = part + 1; j < input_number; j++)
-        //{
-            //remaining_sum += degree[j] - part_sums[j]; // 假设剩余部分用最大值填充
-        //}
-        //if (part_sums[part] + value + remaining_sum < current[index])
-        //{
-            //continue;
-        //}
+        remaining_sum = 0;
+        for (int j = part + 1; j < input_number; j++)
+        {
+            remaining_sum += degree[j] - part_sums[j]; // 假设剩余部分用最大值填充
+        }
+        if (currentSum + value + remaining_sum < current[index])
+        {
+            continue;
+        }
 
         // 分配value给current[index][i]
         current_detail[index][part] = value;
