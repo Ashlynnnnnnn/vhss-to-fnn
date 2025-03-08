@@ -1,12 +1,12 @@
-# BHJL13&LMS-based HSS: easy demo
+# VHSS-to-FNN
 
-a 10-server 19-degree HSS scheme constructed by LMS frame using BHJL13 as the underlying linear HE ($f(x)=x^{19}$)
+Using verifiable homomorphic secret sharing to ensure privacy and correctness of inference tasks in feedforward neural networks
 
-> an easy example of LMS
+> Demo: an MLP to classify images from the MNIST database (hand-written digit database)
 
-### Setup
+## Setup
 
-#### Requirements
+### Requirements
 
 - `gcc`
 - `make`
@@ -14,13 +14,13 @@ a 10-server 19-degree HSS scheme constructed by LMS frame using BHJL13 as the un
 - `gmp`
 - `pbc`
 
-##### GNU Multi Precision
+#### GNU Multi Precision
 
 ```shell
  sudo apt install libgmp-dev
 ```
 
-##### PBC
+#### PBC
 
 Downlaod `pbclib` from [here](https://crypto.stanford.edu/pbc/download.html)
 
@@ -33,7 +33,7 @@ make install
 sudo ldconfig -v
 ```
 
-### Build
+## Build
 
 ```shell
 mkdir build
@@ -42,20 +42,20 @@ cmake ..
 make -j9
 ```
 
-### Run
+## Run
 
-#### Tests
-
-```shell
-cd build
-./2k-prs-test
-```
-
-#### Demo
+### LMS18 Demo
 
 ```shell
 cd build
 ./2k-prs-demo
+```
+
+### Whole Process
+
+```shell
+cd build
+./vhss-to-fnn
 ```
 
 ### Clean

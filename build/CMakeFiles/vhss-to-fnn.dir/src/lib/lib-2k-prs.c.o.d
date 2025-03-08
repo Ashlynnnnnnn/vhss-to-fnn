@@ -1,5 +1,7 @@
-CMakeFiles/2k-prs-demo.dir/src/demo.c.o: \
- /home/ashlynsun/vhss-to-fnn/src/demo.c /usr/include/stdc-predef.h \
+CMakeFiles/vhss-to-fnn.dir/src/lib/lib-2k-prs.c.o: \
+ /home/ashlynsun/vhss-to-fnn/src/lib/lib-2k-prs.c \
+ /usr/include/stdc-predef.h \
+ /home/ashlynsun/vhss-to-fnn/src/include/lib-2k-prs.h \
  /home/ashlynsun/vhss-to-fnn/src/include/lib-mesg.h \
  /home/ashlynsun/vhss-to-fnn/src/include/lib-timing.h \
  /usr/include/assert.h /usr/include/features.h \
@@ -95,11 +97,4 @@ CMakeFiles/2k-prs-demo.dir/src/demo.c.o: \
  /usr/local/include/pbc/pbc_f_param.h \
  /usr/local/include/pbc/pbc_g_param.h \
  /usr/local/include/pbc/pbc_i_param.h /usr/local/include/pbc/pbc_random.h \
- /usr/local/include/pbc/pbc_memory.h \
- /home/ashlynsun/vhss-to-fnn/src/include/lib-misc.h /usr/include/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
- /usr/include/x86_64-linux-gnu/bits/stat.h \
- /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
- /home/ashlynsun/vhss-to-fnn/src/include/lib-2k-prs.h \
- /home/ashlynsun/vhss-to-fnn/src/include/lib-timing.h
+ /usr/local/include/pbc/pbc_memory.h

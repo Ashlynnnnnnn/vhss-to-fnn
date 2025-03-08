@@ -1,7 +1,7 @@
 CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.o: \
- /home/ashlynsun/demo_jl13/src/utils/lib-misc.c \
+ /home/ashlynsun/vhss-to-fnn/src/utils/lib-misc.c \
  /usr/include/stdc-predef.h \
- /home/ashlynsun/demo_jl13/src/include/lib-misc.h \
+ /home/ashlynsun/vhss-to-fnn/src/include/lib-misc.h \
  /usr/include/x86_64-linux-gnu/gmp.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
