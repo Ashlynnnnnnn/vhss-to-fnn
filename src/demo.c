@@ -10,10 +10,10 @@
 #define DEFAULT_MOD_BITS 4096
 #define BENCHMARK_ITERATIONS 10
 
-#define input_number 2
-#define server_number 10
+#define input_number 1
+#define server_number 20
 #define coefficient 2
-#define added_degree 19
+#define added_degree 39
 
 #define sampling_time 4 /* secondi */
 #define max_samples (sampling_time * 50)
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
             prs_ciphertext_init(enc_share[i][j]);
         }
     }
-    degree[0] = 10, degree[1] = 9;
+    degree[0] = 39;
     for(int j=0;j<server_number;j++){
         prs_ciphertext_init(s[j]);
         mpz_set_ui(s[j]->c, 1);
