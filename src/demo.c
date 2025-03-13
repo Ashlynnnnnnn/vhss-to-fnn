@@ -56,7 +56,10 @@ void get_outcome(prs_plaintext_t input, prs_keys_t keys, mpz_t res){
         mpz_add(res, res, temp);
         mpz_mod(res, res, keys->k_2);
     }
-    mpz_clear(expp);
+    if (mpz_cmp_si(res, 20000) > 0){
+        mpz_sub(res, res, keys->k_2);
+    }
+        mpz_clear(expp);
 }
 
 elapsed_time_t time_get_outcome(prs_plaintext_t input, prs_keys_t keys, mpz_t res)
@@ -280,7 +283,7 @@ int main(int argc, char *argv[])
         prs_ciphertext_init(enc_share[j]);
     }
     degree[0] = 2, degree[1] = 1;
-    coefficient[0] = 1, coefficient[1] = 1;
+    coefficient[0] = 1, coefficient[1] = 100;
     for(int j=0;j<server_number;j++){
         prs_ciphertext_init(s[j]);
         mpz_set_ui(s[j]->c, 1);
@@ -312,7 +315,7 @@ int main(int argc, char *argv[])
 
     // Direct computation
     //mpz_urandomb(input->m, prng, keys->k);
-    mpz_set_si(input->m, -20);
+    mpz_set_si(input->m, -99);
     mpz_t plain_res;
     mpz_init(plain_res);
     elapsed_time_t direct_computation_time;
@@ -365,6 +368,10 @@ int main(int argc, char *argv[])
     prs_plaintext_init(dec_res);
     elapsed_time_t decoding_time;
     decoding_time = time_decode(s, keys, dec_res);
+    if (mpz_cmp_si(dec_res->m, 20000) > 0)
+    {
+        mpz_sub(dec_res->m, dec_res->m, keys->k_2);
+    }
     printf_et("Decoding time elapsed: ", decoding_time, tu_millis, "\n");
     gmp_printf("Original Result: %Zd\n\n", plain_res);
     gmp_printf("Result from Dec: %Zd\n\n", dec_res->m);
