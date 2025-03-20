@@ -23,7 +23,7 @@ add_executable(
 
 # Main Part
 add_executable(
-        vhss-to-fnn
+        fnn
         # sources
         src/process/main.c
 
@@ -41,4 +41,4 @@ add_executable(
 # - Math
 # - Pbc
 target_link_libraries(2k-prs-demo gmp m pbc)
-target_link_libraries(vhss-to-fnn gmp m pbc)
+target_link_libraries(fnn gmp m pbc)
