@@ -142,6 +142,19 @@ fnn/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/build
 .PHONY : fnn/fast
 
+#=============================================================================
+# Target rules for targets named linear-vhss-to-fnn
+
+# Build rule for target.
+linear-vhss-to-fnn: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 linear-vhss-to-fnn
+.PHONY : linear-vhss-to-fnn
+
+# fast build rule for target.
+linear-vhss-to-fnn/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/build
+.PHONY : linear-vhss-to-fnn/fast
+
 src/demo.o: src/demo.c.o
 .PHONY : src/demo.o
 
@@ -173,6 +186,7 @@ src/lib/lib-2k-prs.o: src/lib/lib-2k-prs.c.o
 src/lib/lib-2k-prs.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/lib/lib-2k-prs.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/lib/lib-2k-prs.c.o
 .PHONY : src/lib/lib-2k-prs.c.o
 
 src/lib/lib-2k-prs.i: src/lib/lib-2k-prs.c.i
@@ -182,6 +196,7 @@ src/lib/lib-2k-prs.i: src/lib/lib-2k-prs.c.i
 src/lib/lib-2k-prs.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/lib/lib-2k-prs.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/lib/lib-2k-prs.c.i
 .PHONY : src/lib/lib-2k-prs.c.i
 
 src/lib/lib-2k-prs.s: src/lib/lib-2k-prs.c.s
@@ -191,7 +206,32 @@ src/lib/lib-2k-prs.s: src/lib/lib-2k-prs.c.s
 src/lib/lib-2k-prs.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/lib/lib-2k-prs.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/lib/lib-2k-prs.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/lib/lib-2k-prs.c.s
 .PHONY : src/lib/lib-2k-prs.c.s
+
+src/process/linear.o: src/process/linear.c.o
+.PHONY : src/process/linear.o
+
+# target to build an object file
+src/process/linear.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/process/linear.c.o
+.PHONY : src/process/linear.c.o
+
+src/process/linear.i: src/process/linear.c.i
+.PHONY : src/process/linear.i
+
+# target to preprocess a source file
+src/process/linear.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/process/linear.c.i
+.PHONY : src/process/linear.c.i
+
+src/process/linear.s: src/process/linear.c.s
+.PHONY : src/process/linear.s
+
+# target to generate assembly for a file
+src/process/linear.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/process/linear.c.s
+.PHONY : src/process/linear.c.s
 
 src/process/main.o: src/process/main.c.o
 .PHONY : src/process/main.o
@@ -224,6 +264,7 @@ src/utils/lib-mesg.o: src/utils/lib-mesg.c.o
 src/utils/lib-mesg.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-mesg.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-mesg.c.o
 .PHONY : src/utils/lib-mesg.c.o
 
 src/utils/lib-mesg.i: src/utils/lib-mesg.c.i
@@ -233,6 +274,7 @@ src/utils/lib-mesg.i: src/utils/lib-mesg.c.i
 src/utils/lib-mesg.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-mesg.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-mesg.c.i
 .PHONY : src/utils/lib-mesg.c.i
 
 src/utils/lib-mesg.s: src/utils/lib-mesg.c.s
@@ -242,6 +284,7 @@ src/utils/lib-mesg.s: src/utils/lib-mesg.c.s
 src/utils/lib-mesg.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-mesg.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-mesg.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-mesg.c.s
 .PHONY : src/utils/lib-mesg.c.s
 
 src/utils/lib-misc.o: src/utils/lib-misc.c.o
@@ -251,6 +294,7 @@ src/utils/lib-misc.o: src/utils/lib-misc.c.o
 src/utils/lib-misc.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-misc.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-misc.c.o
 .PHONY : src/utils/lib-misc.c.o
 
 src/utils/lib-misc.i: src/utils/lib-misc.c.i
@@ -260,6 +304,7 @@ src/utils/lib-misc.i: src/utils/lib-misc.c.i
 src/utils/lib-misc.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-misc.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-misc.c.i
 .PHONY : src/utils/lib-misc.c.i
 
 src/utils/lib-misc.s: src/utils/lib-misc.c.s
@@ -269,6 +314,7 @@ src/utils/lib-misc.s: src/utils/lib-misc.c.s
 src/utils/lib-misc.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-misc.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-misc.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-misc.c.s
 .PHONY : src/utils/lib-misc.c.s
 
 src/utils/lib-timing.o: src/utils/lib-timing.c.o
@@ -278,6 +324,7 @@ src/utils/lib-timing.o: src/utils/lib-timing.c.o
 src/utils/lib-timing.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-timing.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-timing.c.o
 .PHONY : src/utils/lib-timing.c.o
 
 src/utils/lib-timing.i: src/utils/lib-timing.c.i
@@ -287,6 +334,7 @@ src/utils/lib-timing.i: src/utils/lib-timing.c.i
 src/utils/lib-timing.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-timing.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-timing.c.i
 .PHONY : src/utils/lib-timing.c.i
 
 src/utils/lib-timing.s: src/utils/lib-timing.c.s
@@ -296,6 +344,7 @@ src/utils/lib-timing.s: src/utils/lib-timing.c.s
 src/utils/lib-timing.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/2k-prs-demo.dir/build.make CMakeFiles/2k-prs-demo.dir/src/utils/lib-timing.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fnn.dir/build.make CMakeFiles/fnn.dir/src/utils/lib-timing.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/linear-vhss-to-fnn.dir/build.make CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-timing.c.s
 .PHONY : src/utils/lib-timing.c.s
 
 # Help Target
@@ -308,12 +357,16 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... 2k-prs-demo"
 	@echo "... fnn"
+	@echo "... linear-vhss-to-fnn"
 	@echo "... src/demo.o"
 	@echo "... src/demo.i"
 	@echo "... src/demo.s"
 	@echo "... src/lib/lib-2k-prs.o"
 	@echo "... src/lib/lib-2k-prs.i"
 	@echo "... src/lib/lib-2k-prs.s"
+	@echo "... src/process/linear.o"
+	@echo "... src/process/linear.i"
+	@echo "... src/process/linear.s"
 	@echo "... src/process/main.o"
 	@echo "... src/process/main.i"
 	@echo "... src/process/main.s"

@@ -99,4 +99,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/2k-prs-demo.dir/DependInfo.cmake"
   "CMakeFiles/fnn.dir/DependInfo.cmake"
+  "CMakeFiles/linear-vhss-to-fnn.dir/DependInfo.cmake"
   )

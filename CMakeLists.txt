@@ -21,11 +21,25 @@ add_executable(
         # lib sources
         src/lib/lib-2k-prs.c)
 
-# Main Part
+# Basic Part
 add_executable(
         fnn
         # sources
         src/process/main.c
+
+        # utils
+        src/utils/lib-mesg.c
+        src/utils/lib-timing.c
+        src/utils/lib-misc.c
+
+        # lib sources
+        src/lib/lib-2k-prs.c)
+
+# Adding linear vhss
+add_executable(
+        linear-vhss-to-fnn
+        # sources
+        src/process/linear.c
 
         # utils
         src/utils/lib-mesg.c
@@ -42,3 +56,4 @@ add_executable(
 # - Pbc
 target_link_libraries(2k-prs-demo gmp m pbc)
 target_link_libraries(fnn gmp m pbc)
+target_link_libraries(linear-vhss-to-fnn gmp m pbc)

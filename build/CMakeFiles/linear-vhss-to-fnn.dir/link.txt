@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/linear-vhss-to-fnn.dir/src/process/linear.c.o CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-mesg.c.o CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-timing.c.o CMakeFiles/linear-vhss-to-fnn.dir/src/utils/lib-misc.c.o CMakeFiles/linear-vhss-to-fnn.dir/src/lib/lib-2k-prs.c.o -o linear-vhss-to-fnn  -lgmp -lm -lpbc 
