@@ -18,9 +18,9 @@
 // all mnist data is stored in this struct
 typedef struct
 {
-    float (*data)[MAX_IMAGES];     // 指向二维数组的指针
-    int (*temp)[MAX_IMAGES];       // 修改为指向二维数组的指针
-    int (*result_data)[MAX_IMAGES];// 修改为指向二维数组的指针
+    float (*data)[MAX_IMAGES];     // pointer to a two-dimensional array
+    int (*temp)[MAX_IMAGES];
+    int (*result_data)[MAX_IMAGES];
     int num_images;
     int image_size; // pixels per image
 } MNISTData;
