@@ -15,8 +15,6 @@
 #define WEIGHT3_COLS 512
 #define WEIGHT3_ROWS 10
 
-int added_data[INITIAL_IMAGE_SIZE][MAX_IMAGES];
-
 // all mnist data is stored in this struct
 typedef struct
 {
