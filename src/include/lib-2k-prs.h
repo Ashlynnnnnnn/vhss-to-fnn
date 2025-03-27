@@ -51,14 +51,16 @@ struct prs_ciphertext_struct {
 };
 typedef struct prs_ciphertext_struct prs_ciphertext_t[1];
 
-void prs_generate_keys(prs_keys_t keys, unsigned int k, unsigned int n_bits, gmp_randstate_t prng);
+void prs_generate_keys(prs_keys_t *keys, unsigned int k, unsigned int n_bits, gmp_randstate_t prng);
 
+void prs_keys_init(prs_keys_t *keys);
+void prs_keys_clear(prs_keys_t *keys);
 void prs_plaintext_init(prs_plaintext_t plaintext);
 void prs_plaintext_clear(prs_plaintext_t plaintext);
 void prs_ciphertext_init(prs_ciphertext_t ciphertext);
 void prs_ciphertext_clear(prs_ciphertext_t ciphertext);
 
-void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t keys, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size);
+void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t *keys, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size);
 
-void prs_decrypt(prs_plaintext_t plaintext, prs_keys_t keys, prs_ciphertext_t ciphertext);
+void prs_decrypt(prs_plaintext_t plaintext, prs_keys_t *keys, prs_ciphertext_t ciphertext);
 #endif //PRS_H

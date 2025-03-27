@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/vhss-to-fnn.dir/src/process/final.c.o CMakeFiles/vhss-to-fnn.dir/src/utils/lib-mesg.c.o CMakeFiles/vhss-to-fnn.dir/src/utils/lib-timing.c.o CMakeFiles/vhss-to-fnn.dir/src/utils/lib-misc.c.o CMakeFiles/vhss-to-fnn.dir/src/lib/lib-2k-prs.c.o -o vhss-to-fnn  libdemo.a -lgmp -lm -lpbc 

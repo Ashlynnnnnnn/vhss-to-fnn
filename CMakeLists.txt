@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD 99)
 # Headers dir
 include_directories(src/include)
 
-# Demo
+# LMS18 Demo
 add_executable(
         2k-prs-demo
         # sources
@@ -49,6 +49,22 @@ add_executable(
         # lib sources
         src/lib/lib-2k-prs.c)
 
+# Final scheme
+add_executable(
+        vhss-to-fnn
+        # sources
+        src/process/final.c
+
+        # utils
+        src/utils/lib-mesg.c
+        src/utils/lib-timing.c
+        src/utils/lib-misc.c
+
+        # lib sources
+        src/lib/lib-2k-prs.c)
+
+add_library(demo src/demo.c)
+target_compile_definitions(demo PRIVATE BUILD_AS_LIBRARY)
 
 # Linking libraries
 # - GMP
@@ -57,3 +73,4 @@ add_executable(
 target_link_libraries(2k-prs-demo gmp m pbc)
 target_link_libraries(fnn gmp m pbc)
 target_link_libraries(linear-vhss-to-fnn gmp m pbc)
+target_link_libraries(vhss-to-fnn demo gmp m pbc)

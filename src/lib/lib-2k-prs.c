@@ -17,6 +17,32 @@
 
 #include <lib-2k-prs.h>
 
+void prs_keys_init(prs_keys_t *keys)
+{
+    (*keys)->n_bits = 0;
+    (*keys)->k = 0;
+
+    mpz_init((*keys)->n);
+    mpz_init((*keys)->y);
+    mpz_init((*keys)->k_2);
+    mpz_init((*keys)->p);
+    mpz_init((*keys)->q);
+    (*keys)->d = NULL;
+}
+
+void prs_keys_clear(prs_keys_t *keys)
+{
+    mpz_clear((*keys)->n);
+    mpz_clear((*keys)->y);
+    mpz_clear((*keys)->k_2);
+    mpz_clear((*keys)->p);
+    mpz_clear((*keys)->q);
+    if ((*keys)->d != NULL)
+    {
+        free((*keys)->d);
+    }
+}
+
 /**
  * Init plaintext struct
  * @param plaintext
@@ -63,44 +89,44 @@ void prs_ciphertext_clear(prs_ciphertext_t ciphertext){
  * @param prng state for random number generator
  */
 
-void prs_generate_keys(prs_keys_t keys, unsigned int k, unsigned int n_bits, gmp_randstate_t prng){
+void prs_generate_keys(prs_keys_t *keys, unsigned int k, unsigned int n_bits, gmp_randstate_t prng){
 
     mpz_t tmp, p_m_1, p_m_1_k, d;
     unsigned int p_bits, q_bits, i;
 
     //pmesg(msg_verbose, "keys generation");
 
-    assert(keys);
+    assert(keys[0]);
     assert(n_bits > 1);
 
     p_bits = n_bits >> 1;
 
-    keys->n_bits = n_bits;
+    keys[0]->n_bits = n_bits;
 
-    mpz_inits(keys->p, keys->q, keys->y, keys->n, keys->k_2, NULL);
+    mpz_inits(keys[0]->p, keys[0]->q, keys[0]->y, keys[0]->n, keys[0]->k_2, NULL);
     mpz_inits(tmp, p_m_1, p_m_1_k, d, NULL);
 
-    keys->k = k;
+    keys[0]->k = k;
     // 2^k
-    mpz_ui_pow_ui(keys->k_2, 2L, k);
+    mpz_ui_pow_ui(keys[0]->k_2, 2L, k);
 
     do {
-        mpz_urandomb(keys->p, prng, p_bits - k);
-        mpz_mul_2exp(keys->p, keys->p, k);
-        mpz_setbit(keys->p, 0L);
-    }while(mpz_sizeinbase(keys->p, 2) < p_bits || !mpz_probab_prime_p(keys->p, PRS_MR_ITERATIONS));
+        mpz_urandomb(keys[0]->p, prng, p_bits - k);
+        mpz_mul_2exp(keys[0]->p, keys[0]->p, k);
+        mpz_setbit(keys[0]->p, 0L);
+    } while (mpz_sizeinbase(keys[0]->p, 2) < p_bits || !mpz_probab_prime_p(keys[0]->p, PRS_MR_ITERATIONS));
 
-    q_bits = mpz_sizeinbase(keys->p, 2);
+    q_bits = mpz_sizeinbase(keys[0]->p, 2);
     /* pick random prime q*/
     do {
-        mpz_urandomb(keys->q, prng, p_bits - 2);
-        mpz_mul_2exp(keys->q, keys->q, 2);
-        mpz_setbit(keys->q, 0L);
-        mpz_setbit(keys->q, 1L);
-    }while (mpz_sizeinbase(keys->q, 2) < q_bits  || !mpz_probab_prime_p(keys->q, PRS_MR_ITERATIONS));
+        mpz_urandomb(keys[0]->q, prng, p_bits - 2);
+        mpz_mul_2exp(keys[0]->q, keys[0]->q, 2);
+        mpz_setbit(keys[0]->q, 0L);
+        mpz_setbit(keys[0]->q, 1L);
+    } while (mpz_sizeinbase(keys[0]->q, 2) < q_bits || !mpz_probab_prime_p(keys[0]->q, PRS_MR_ITERATIONS));
 
     /* n = p*q */
-    mpz_mul(keys->n, keys->p, keys->q);
+    mpz_mul(keys[0]->n, keys[0]->p, keys[0]->q);
 
     /**
      * J = { a € Zn: J(a/n) = 1 }
@@ -115,24 +141,25 @@ void prs_generate_keys(prs_keys_t keys, unsigned int k, unsigned int n_bits, gmp
      * */
 
     do {
-        mpz_urandomb(keys->y, prng, n_bits);
-        mpz_gcd(tmp, keys->y, keys->n);
+        mpz_urandomb(keys[0]->y, prng, n_bits);
+        mpz_gcd(tmp, keys[0]->y, keys[0]->n);
         if(mpz_cmp_ui(tmp, 1L) != 0){
             continue;
         }
-    } while (mpz_jacobi(keys->y, keys->p) != -1 ||  mpz_jacobi(keys->y, keys->q) != -1);
+    } while (mpz_jacobi(keys[0]->y, keys[0]->p) != -1 || mpz_jacobi(keys[0]->y, keys[0]->q) != -1);
 
-    mpz_sub_ui(p_m_1, keys->p, 1L);
-    mpz_div_2exp(p_m_1_k, p_m_1, keys->k);
-    mpz_powm(d, keys->y, p_m_1_k, keys->p);
-    mpz_invert(d, d, keys->p);
+    mpz_sub_ui(p_m_1, keys[0]->p, 1L);
+    mpz_div_2exp(p_m_1_k, p_m_1, keys[0]->k);
+    mpz_powm(d, keys[0]->y, p_m_1_k, keys[0]->p);
+    mpz_invert(d, d, keys[0]->p);
 
-    keys->d = malloc(sizeof (mpz_t) * (k -1));
-    mpz_init(keys->d[0]);
-    mpz_set(keys->d[0], d);
-    for(i = 1; i < keys->k -1; i++){
-        mpz_init(keys->d[i]);
-        mpz_powm_ui(keys->d[i], keys->d[i-1], 2L, keys->p);
+    keys[0]->d = malloc(sizeof(mpz_t) * (k - 1));
+    mpz_init(keys[0]->d[0]);
+    mpz_set(keys[0]->d[0], d);
+    for (i = 1; i < keys[0]->k - 1; i++)
+    {
+        mpz_init(keys[0]->d[i]);
+        mpz_powm_ui(keys[0]->d[i], keys[0]->d[i - 1], 2L, keys[0]->p);
     }
     mpz_clears(tmp, p_m_1, p_m_1_k, d, NULL);
 
@@ -147,16 +174,16 @@ void prs_generate_keys(prs_keys_t keys, unsigned int k, unsigned int n_bits, gmp
  * @param plaintext
  * @param prng
  */
-void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t keys, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size){
+void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t *keys, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size){
     mpz_t x, y_m;
     assert(base_size > 0);
-    assert(base_size <= keys->k);
+    assert(base_size <= keys[0]->k);
     mpz_inits(x, y_m, NULL);
     mpz_urandomb(x, prng, base_size);
-    mpz_powm(y_m, keys->y, plaintext->m, keys->n);
-    mpz_powm(x, x, keys->k_2, keys->n);
+    mpz_powm(y_m, keys[0]->y, plaintext->m, keys[0]->n);
+    mpz_powm(x, x, keys[0]->k_2, keys[0]->n);
     mpz_mul(ciphertext->c, x, y_m);
-    mpz_mod(ciphertext->c, ciphertext->c, keys->n);
+    mpz_mod(ciphertext->c, ciphertext->c, keys[0]->n);
 }
 /**
  * Decrypt(sk, c) Given c ∈ Zn* and the private key sk = {p}, the algorithm first computes
@@ -179,22 +206,23 @@ void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t keys, prs_plaintext_t p
  * @param ciphertext ciphertext to decrypt
  */
 
-void prs_decrypt(prs_plaintext_t plaintext, prs_keys_t keys, prs_ciphertext_t ciphertext){
+void prs_decrypt(prs_plaintext_t plaintext, prs_keys_t *keys, prs_ciphertext_t ciphertext){
     int i=0;
     mpz_t m, c, b, z, p_m_1, p_m_1_k, k_j;
     mpz_inits(m, c, b, z, p_m_1, p_m_1_k, k_j, NULL);
     mpz_set_ui(m, 0);
     mpz_set_ui(b, 1L);
-    mpz_sub_ui(p_m_1, keys->p, 1L);
-    mpz_div_2exp(p_m_1_k, p_m_1, keys->k);
-    mpz_powm(c, ciphertext->c, p_m_1_k, keys->p);
-    for(i = 1; i < keys->k; i++){
-        mpz_ui_pow_ui(k_j, 2L, keys->k - i);
-        mpz_powm(z, c, k_j, keys->p);
+    mpz_sub_ui(p_m_1, keys[0]->p, 1L);
+    mpz_div_2exp(p_m_1_k, p_m_1, keys[0]->k);
+    mpz_powm(c, ciphertext->c, p_m_1_k, keys[0]->p);
+    for (i = 1; i < keys[0]->k; i++)
+    {
+        mpz_ui_pow_ui(k_j, 2L, (keys[0]->k) - i);
+        mpz_powm(z, c, k_j, keys[0]->p);
         if(mpz_cmp_ui(z, 1) != 0){
             mpz_add(m, m, b);
-            mpz_mul(c, c, keys->d[i - 1]);
-            mpz_mod(c, c, keys->p);
+            mpz_mul(c, c, keys[0]->d[i - 1]);
+            mpz_mod(c, c, keys[0]->p);
         }
         mpz_mul_2exp(b, b, 1);
     }
