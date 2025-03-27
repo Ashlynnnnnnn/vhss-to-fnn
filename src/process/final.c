@@ -558,7 +558,15 @@ int main()
         {
             mnist->data[i][j] = (float)(mnist->result_data[i][j]) / 10000.0f;
             float rounded_val = roundf(mnist->data[i][j] * 100) / 100; // Retain 2 decimals
-            mnist->data[i][j] = rounded_val * rounded_val + rounded_val;
+            int processed_val = process_rounded_val(rounded_val, keys);
+            if (processed_val == 0)
+            {
+                mnist->data[i][j] = 0.0f;
+            }
+            else
+            {
+                mnist->data[i][j] = (float)processed_val / 10000.0f;
+            }
             mnist->data[i][j] = roundf(mnist->data[i][j] * 100) / 100;
         }
     }
