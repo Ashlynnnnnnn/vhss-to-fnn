@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <gmp.h>
 #include "../demo.h"
+#include "../poly_vri/fri.h"
+#include "../prf/acef.h"
+#include "../poly_vri/vpoly.h"
 
 #define INITIAL_IMAGE_SIZE 784 // 28*28 pixels
 #define MAX_LINE_LENGTH 4096
@@ -368,7 +371,23 @@ bool linear_veri(MNISTData *input_data, int weight_rows, int weight_cols, float 
     return true;
 }
 
-int process_rounded_val(float rounded_val, prs_keys_t *keys)
+bool poly_veri(mpz_t input, mpz_t output, int *coefficient, int *degree)
+{
+    int initial_domain_length = 8;
+    mpz_t field_modulus, omega;
+    mpz_t *precode = (mpz_t *)malloc(initial_domain_length * sizeof(mpz_t));
+    mpz_set_ui(field_modulus, 65537), mpz_set_ui(omega, 4096);
+
+
+    mpz_clear(field_modulus), mpz_clear(omega);
+    for (int i = 0; i < initial_domain_length; i++)
+    {
+        mpz_clear(precode[i]);
+    }
+    free(precode);
+}
+
+int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_t *k2, mpz_t alpha)
 {
     if (rounded_val == 0.0f || rounded_val == -0.0f)
     {
@@ -376,41 +395,34 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys)
     }
 
     prs_plaintext_t input, ss[server_number];
-    prs_ciphertext_t enc_share[server_number], s[server_number];
+    prs_ciphertext_t enc_share[server_number], s[server_number], sigma;
     prs_plaintext_init(input);
-    mpz_init(added_value);
     for (int j = 0; j < server_number; j++)
     {
         prs_plaintext_init(ss[j]);
         mpz_init(eval_parts[j]);
         prs_ciphertext_init(enc_share[j]);
     }
-    degree[0] = 2, degree[1] = 1;
-    coefficient[0] = 1, coefficient[1] = 100;
     for (int j = 0; j < server_number; j++)
     {
         prs_ciphertext_init(s[j]);
         mpz_set_ui(s[j]->c, 1);
     }
-    for (int i = 0; i < server_number; i++)
-    {
-        mpz_init(comp[i]);
-        mpz_set_ui(comp[i], 1);
-    }
-    mpz_init_set_ui(times, 1);
+    prs_ciphertext_init(sigma);
+    prs_ciphertext_t ct;
+    prs_ciphertext_init(ct);
+    prs_plaintext_t pt;
+    prs_plaintext_init(pt);
+    mpz_t r, sigma_1, temp;
+    mpz_inits(r, sigma_1, temp, NULL);
 
     mpz_set_si(input->m, (int)roundf(rounded_val * 100));
 
     // Sharing
-    share(input, keys, enc_share, ss);
-
-    for (int j = 1; j < server_number; j++)
-    {
-        mpz_add(added_value, added_value, ss[j]->m);
-    }
-    mpz_mod(added_value, added_value, keys[0]->k_2);
+    share(input, keys[0]->y, enc_share, ss);
 
     // evaluation
+    mpz_inits(co_1, co_2, NULL);
     for (int i = 0; i < server_number; i++)
     {
         for (int j = 0; j < server_number; j++)
@@ -421,18 +433,28 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys)
             }
         }
         mpz_set(eval_parts[i], enc_share[i]->c);
-        evaluate(s[i], keys, i);
-        if (i != server_number - 1)
-        {
-            mpz_sub(added_value, added_value, eval_parts[i + 1]);
-            mpz_mod(added_value, added_value, keys[0]->k_2);
-        }
+        uint8_t* delta = get_delta(k1, ss[i]->m);
+        prob_gen(delta, k1, k2, sigma_1, alpha, keys[0]->g, keys[0]->n_prime, r, eval_parts[i]);
+        mpz_powm_ui(co_2, eval_parts[1 - i], 2, k_2); // co_2 = eval_parts[1-i]^2 mod k_2
+        mpz_mul_ui(co_1, eval_parts[1 - i], 50);      // co_1 = 50 * eval_parts[1-i]
+        mpz_add(co_2, co_2, co_1);                    // co_2 = co_2 + co_1
+        mpz_mod(co_2, co_2, k_2);                     // co_2 = co_2 mod k_2
+        mpz_set(co_1, eval_parts[1 - i]);
+        mpz_add_ui(co_1, co_1, 50);
+        mpz_mod(co_1, co_1, k_2);
+        mpz_set(pt->m, co_2);
+        prs_encrypt(ct, MESSAGE_BITS, keys[0]->y, N, k_2, pt, prng, 48);
+        mpz_set_ui(sigma->c, 1);
+        evaluate(s[i], keys[0]->y, eval_parts[i], ct);
+        evaluate(sigma, keys[0]->y, sigma_1, ct);
+        verify(s[i]->c, sigma->c, r, alpha, co_1, keys[0]->y, ct);
+        free(delta);
     }
 
     // decode
     prs_plaintext_t dec_res;
     prs_plaintext_init(dec_res);
-    decode(s, keys, dec_res);
+    decode(s, keys[0]->p, keys[0]->d, dec_res);
     if (mpz_cmp_si(dec_res->m, 20000) > 0)
     {
         mpz_sub(dec_res->m, dec_res->m, keys[0]->k_2);
@@ -448,7 +470,37 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys)
         prs_ciphertext_clear(s[j]);
     }
     prs_plaintext_clear(dec_res);
+    mpz_clears(r, sigma_1, temp, NULL);
+    prs_ciphertext_clear(sigma);
+    prs_ciphertext_clear(ct);
+    prs_plaintext_clear(pt);
     return result;
+}
+
+void get_phi(mpz_t p, mpz_t q, mpz_t phi){
+    mpz_t p_1, q_1;
+    mpz_inits(p_1, q_1, NULL);
+    mpz_sub_ui(p_1, p, 1);
+    mpz_sub_ui(q_1, q, 1);
+    mpz_mul(phi, p_1, q_1);
+    mpz_clears(p_1, q_1, NULL);
+    return;
+}
+
+void get_random_star(mpz_t N, mpz_t alpha)
+{
+    mpz_t gcd;
+    mpz_init(gcd);
+
+    do
+    {
+        mpz_urandomm(alpha, prng, N); // [0,N-1]
+        mpz_add_ui(alpha, alpha, 1); // [1,N]
+        mpz_gcd(gcd, alpha, N);
+    } while (mpz_cmp_ui(gcd, 1) != 0);
+
+    mpz_clear(gcd);
+    return;
 }
 
 int main()
@@ -459,7 +511,20 @@ int main()
     set_messaging_level(msg_very_verbose); // level of detail of input
     prs_keys_t *keys = (prs_keys_t *)malloc(sizeof(prs_keys_t));
     prs_keys_init(keys);
-    prs_generate_keys(keys, DEFAULT_MOD_BITS / 4, DEFAULT_MOD_BITS, prng);
+    prs_generate_keys(keys, MESSAGE_BITS, DEFAULT_MOD_BITS, prng);
+    mpz_inits(N, k_2, NULL);
+    mpz_set(N, keys[0]->n);
+    mpz_set(k_2, keys[0]->k_2);
+
+    mpz_t k1, k2;
+    mpz_inits(k1, k2, NULL);
+    uint8_t* k1_bytes = generate_seed(prng, k1);
+    uint8_t* k2_bytes = generate_seed(prng, k2);
+
+    mpz_t alpha, phi_N;
+    mpz_inits(alpha, phi_N, NULL);
+    get_phi(keys[0]->p, keys[0]->q, phi_N);
+    get_random_star(phi_N, alpha);
 
     MNISTData *mnist = read_mnist_images("/home/ashlynsun/vhss-to-fnn/data/mnist_images.txt");
     if (!mnist)
@@ -467,7 +532,7 @@ int main()
         printf("Failed to read MNIST data\n");
         return 1;
     }
-    //mnist->num_images = 1000;
+    //mnist->num_images = 1;
 
     float weight1[WEIGHT1_ROWS][WEIGHT1_COLS];
     float bia1[WEIGHT1_ROWS], bia1_1[WEIGHT1_ROWS], bia1_2[WEIGHT1_ROWS];
@@ -521,9 +586,10 @@ int main()
     {
         for (int j = 0; j < mnist->num_images; j++)
         {
+            printf("First: i = %d, j = %d\n\n", i, j);
             mnist->data[i][j] = (float)(mnist->result_data[i][j]) / 10000.0f;
             float rounded_val = roundf(mnist->data[i][j] * 100) / 100; // Retain 2 decimals
-            int processed_val = process_rounded_val(rounded_val, keys);
+            int processed_val = process_rounded_val(rounded_val, keys, k1_bytes, k2_bytes, alpha);
             if (processed_val == 0) {
                 mnist->data[i][j] = 0.0f;
             } else {
@@ -556,9 +622,10 @@ int main()
     {
         for (int j = 0; j < mnist->num_images; j++)
         {
+            printf("Second: i = %d, j = %d\n\n", i, j);
             mnist->data[i][j] = (float)(mnist->result_data[i][j]) / 10000.0f;
             float rounded_val = roundf(mnist->data[i][j] * 100) / 100; // Retain 2 decimals
-            int processed_val = process_rounded_val(rounded_val, keys);
+            int processed_val = process_rounded_val(rounded_val, keys, k1_bytes, k2_bytes, alpha);
             if (processed_val == 0)
             {
                 mnist->data[i][j] = 0.0f;
@@ -655,8 +722,11 @@ int main()
     free(true_labels);
     free(predicted_labels);
     free_mnist_data(mnist);
+    free(k1_bytes);
+    free(k2_bytes);
     gmp_randclear(prng);
     prs_keys_clear(keys);
     free(keys);
+    mpz_clears(alpha, phi_N, k_2, N, k1, k2, NULL);
     return 0;
 }

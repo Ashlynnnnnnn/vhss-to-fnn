@@ -28,7 +28,6 @@
 
 typedef enum { prs_public_key_type, prs_secret_key_type } prs_key_type_t;
 struct prs_keys_struct {
-    //prs_key_type_t type; // where to use
     unsigned int n_bits;
     unsigned int k;
     mpz_t n;
@@ -37,6 +36,8 @@ struct prs_keys_struct {
     mpz_t k_2; // 2^k
     mpz_t p;
     mpz_t q;
+    mpz_t n_prime;
+    mpz_t g;
     mpz_t *d; // fast decrption
 };
 typedef struct prs_keys_struct prs_keys_t[1]; // in pointer ...
@@ -60,7 +61,7 @@ void prs_plaintext_clear(prs_plaintext_t plaintext);
 void prs_ciphertext_init(prs_ciphertext_t ciphertext);
 void prs_ciphertext_clear(prs_ciphertext_t ciphertext);
 
-void prs_encrypt(prs_ciphertext_t ciphertext, prs_keys_t *keys, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size);
+void prs_encrypt(prs_ciphertext_t ciphertext, unsigned int k, mpz_t y, mpz_t n, mpz_t k_2, prs_plaintext_t plaintext, gmp_randstate_t prng, unsigned int base_size);
 
-void prs_decrypt(prs_plaintext_t plaintext, prs_keys_t *keys, prs_ciphertext_t ciphertext);
+void prs_decrypt(prs_plaintext_t plaintext, mpz_t p, unsigned int k, mpz_t *d, prs_ciphertext_t ciphertext);
 #endif //PRS_H

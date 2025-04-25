@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/fnn.dir/src/process/main.c.o CMakeFiles/fnn.dir/src/utils/lib-mesg.c.o CMakeFiles/fnn.dir/src/utils/lib-timing.c.o CMakeFiles/fnn.dir/src/utils/lib-misc.c.o CMakeFiles/fnn.dir/src/lib/lib-2k-prs.c.o -o fnn  -lgmp -lm -lpbc 

@@ -3,6 +3,7 @@ project(vhss-to-fnn C)
 
 set(CMAKE_C_STANDARD 99)
 
+find_package(RELIC REQUIRED)
 
 # Headers dir
 include_directories(src/include)
@@ -65,12 +66,13 @@ add_executable(
 
 add_library(demo src/demo.c)
 target_compile_definitions(demo PRIVATE BUILD_AS_LIBRARY)
+add_library(fri src/poly_vri/fri.c)
+add_library(acef src/prf/acef.c)
+add_library(vpoly src/poly_vri/vpoly.c)
 
 # Linking libraries
-# - GMP
-# - Math
-# - Pbc
 target_link_libraries(2k-prs-demo gmp m pbc)
 target_link_libraries(fnn gmp m pbc)
 target_link_libraries(linear-vhss-to-fnn gmp m pbc)
-target_link_libraries(vhss-to-fnn demo gmp m pbc)
+target_link_libraries(vhss-to-fnn vpoly demo fri acef gmp m pbc relic)
+target_include_directories(vhss-to-fnn PRIVATE ${RELIC_INCLUDE_DIRS})
