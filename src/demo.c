@@ -108,7 +108,7 @@ elapsed_time_t time_share(prs_plaintext_t input, mpz_t y, prs_ciphertext_t enc_s
     return time;
 }
 
-void evaluate(prs_ciphertext_t s, mpz_t y, mpz_t input, prs_ciphertext_t ct)
+void evaluate(prs_ciphertext_t s, mpz_t input, prs_ciphertext_t ct)
 {
     mpz_t temp;
     mpz_init(temp);
@@ -125,11 +125,11 @@ void evaluate(prs_ciphertext_t s, mpz_t y, mpz_t input, prs_ciphertext_t ct)
     return;
 }
 
-elapsed_time_t time_evaluate(prs_ciphertext_t s, mpz_t y, mpz_t input, prs_ciphertext_t ct)
+elapsed_time_t time_evaluate(prs_ciphertext_t s, mpz_t input, prs_ciphertext_t ct)
 {
     elapsed_time_t time;
     perform_oneshot_clock_cycles_sampling(time, tu_millis, {
-        evaluate(s, y, input, ct);
+        evaluate(s, input, ct);
     });
     return time;
 }
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
         mpz_mod(co_1, co_1, k_2);
         mpz_set(pt->m, co_2);
         prs_encrypt(ct, MESSAGE_BITS, keys[0]->y, N, k_2, pt, prng, 48);
-        eval_time[i] = time_evaluate(s[i], keys[0]->y, eval_parts[i], ct);
+        eval_time[i] = time_evaluate(s[i], eval_parts[i], ct);
         printf("S%d's ", i+1);
         printf_et("evaluation time elapsed: ", eval_time[i], tu_millis, "\n");
         gmp_printf("S%d outputs: %Zd\n\n", i+1, s[i]->c);

@@ -13,7 +13,7 @@
 #define server_number 2
 
 void share(prs_plaintext_t input, mpz_t y, prs_ciphertext_t enc_s[], prs_plaintext_t ss[]);
-void evaluate(prs_ciphertext_t s, mpz_t y, mpz_t input, prs_ciphertext_t ct);
+void evaluate(prs_ciphertext_t s, mpz_t input, prs_ciphertext_t ct);
 void decode(prs_ciphertext_t s[], mpz_t p, mpz_t *d, prs_plaintext_t dec_res);
 
 extern gmp_randstate_t prng;

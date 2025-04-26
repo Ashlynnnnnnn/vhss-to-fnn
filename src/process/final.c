@@ -445,8 +445,8 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_
         mpz_set(pt->m, co_2);
         prs_encrypt(ct, MESSAGE_BITS, keys[0]->y, N, k_2, pt, prng, 48);
         mpz_set_ui(sigma->c, 1);
-        evaluate(s[i], keys[0]->y, eval_parts[i], ct);
-        evaluate(sigma, keys[0]->y, sigma_1, ct);
+        evaluate(s[i], eval_parts[i], ct);
+        evaluate(sigma, sigma_1, ct);
         verify(s[i]->c, sigma->c, r, alpha, co_1, keys[0]->y, ct);
         free(delta);
     }
