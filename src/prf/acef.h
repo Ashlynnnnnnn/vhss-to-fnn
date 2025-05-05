@@ -7,7 +7,7 @@
 
 #define BLOCK_SIZE 64
 #define HASH_LEN 32
-#define SEC_PARAM 48
+#define SEC_PARAM 32
 
 uint8_t *generate_seed(gmp_randstate_t prng, mpz_t seed);
 void hmac(uint8_t *output, uint8_t *input, int input_size, uint8_t *key);

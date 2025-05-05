@@ -1,0 +1,2 @@
+/usr/bin/ar qc libfri.a CMakeFiles/fri.dir/src/poly_vri/fri.c.o
+/usr/bin/ranlib libfri.a

@@ -164,6 +164,7 @@ void prs_generate_keys(prs_keys_t *keys, unsigned int k, unsigned int n_bits, gm
 
     keys[0]->k = k;
     // 2^k
+    //gettimeofday(&start, NULL);
     mpz_ui_pow_ui(keys[0]->k_2, 2L, k);
 
     do {
@@ -189,7 +190,7 @@ void prs_generate_keys(prs_keys_t *keys, unsigned int k, unsigned int n_bits, gm
     mpz_mul(keys[0]->n_prime, p_prime, q_prime);
 
     find_generator(keys[0]->g, keys[0]->n, keys[0]->n_prime, prng, keys[0]->k_2);
-    verify_generator(keys[0]->g, keys[0]->n, p_prime, q_prime);
+    //verify_generator(keys[0]->g, keys[0]->n, p_prime, q_prime);
 
     /**
      * J = { a € Zn: J(a/n) = 1 }
@@ -215,15 +216,20 @@ void prs_generate_keys(prs_keys_t *keys, unsigned int k, unsigned int n_bits, gm
     mpz_div_2exp(p_m_1_k, p_m_1, keys[0]->k);
     mpz_powm(d, keys[0]->y, p_m_1_k, keys[0]->p);
     mpz_invert(d, d, keys[0]->p);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     keys[0]->d = malloc(sizeof(mpz_t) * (k - 1));
     mpz_init(keys[0]->d[0]);
     mpz_set(keys[0]->d[0], d);
+    //gettimeofday(&start, NULL);
     for (i = 1; i < keys[0]->k - 1; i++)
     {
         mpz_init(keys[0]->d[i]);
         mpz_powm_ui(keys[0]->d[i], keys[0]->d[i - 1], 2L, keys[0]->p);
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
     mpz_clears(tmp, p_m_1, p_m_1_k, d, p_prime, q_prime, NULL);
 }
 
@@ -275,6 +281,7 @@ void prs_decrypt(prs_plaintext_t plaintext, mpz_t p, unsigned int k, mpz_t *d, p
     mpz_inits(m, c, b, z, p_m_1, p_m_1_k, k_j, NULL);
     mpz_set_ui(m, 0);
     mpz_set_ui(b, 1L);
+    //gettimeofday(&start, NULL);
     mpz_sub_ui(p_m_1, p, 1L);
     mpz_div_2exp(p_m_1_k, p_m_1, k);
     mpz_powm(c, ciphertext->c, p_m_1_k, p);
@@ -292,6 +299,8 @@ void prs_decrypt(prs_plaintext_t plaintext, mpz_t p, unsigned int k, mpz_t *d, p
     if(mpz_cmp_ui(c, 1L) != 0){
         mpz_add(m, m, b);
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
     mpz_set(plaintext->m, m);
     mpz_clears(m, c, b, z, p_m_1, p_m_1_k, k_j, NULL);
 }

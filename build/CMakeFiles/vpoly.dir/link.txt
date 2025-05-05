@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvpoly.a CMakeFiles/vpoly.dir/src/poly_vri/vpoly.c.o
+/usr/bin/ranlib libvpoly.a

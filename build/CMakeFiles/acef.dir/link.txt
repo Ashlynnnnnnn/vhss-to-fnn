@@ -1,0 +1,2 @@
+/usr/bin/ar qc libacef.a CMakeFiles/acef.dir/src/prf/acef.c.o
+/usr/bin/ranlib libacef.a

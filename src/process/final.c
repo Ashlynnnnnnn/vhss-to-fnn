@@ -9,6 +9,7 @@
 #include "../poly_vri/fri.h"
 #include "../prf/acef.h"
 #include "../poly_vri/vpoly.h"
+#include <sys/time.h>
 
 #define INITIAL_IMAGE_SIZE 784 // 28*28 pixels
 #define MAX_LINE_LENGTH 4096
@@ -20,6 +21,9 @@
 #define WEIGHT3_COLS 512
 #define WEIGHT3_ROWS 10
 
+struct timeval start, end;
+double total_time = 0.0;
+
 // all mnist data is stored in this struct
 typedef struct
 {
@@ -29,6 +33,11 @@ typedef struct
     int num_images;
     int image_size; // pixels per image
 } MNISTData;
+
+double get_time_elapsed(struct timeval start, struct timeval end)
+{
+    return ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+}
 
 void skip_header(FILE *file)
 {
@@ -261,14 +270,16 @@ int *read_labels(const char *filename)
 void linear_split(MNISTData *original_data, MNISTData *share1, MNISTData *share2)
 {
     srand(time(NULL));
-
     for (int i = 0; i < original_data->image_size; i++)
     {
         for (int j = 0; j < original_data->num_images; j++)
         {
             int enlarged_value = (int)roundf(original_data->data[i][j] * 100);
+            gettimeofday(&start, NULL);
             share1->temp[i][j] = rand() % (2 * abs(enlarged_value) + 1) - abs(enlarged_value);
             share2->temp[i][j] = enlarged_value - share1->temp[i][j];
+            gettimeofday(&end, NULL);
+            total_time += get_time_elapsed(start, end);
         }
     }
 
@@ -283,9 +294,12 @@ void bia_split(float *bias, int bias_size, float *share1, float *share2)
     srand(time(NULL));
     for (int i = 0; i < bias_size; i++)
     {
+        gettimeofday(&start, NULL);
         float random_factor = ((float)rand() / (float)RAND_MAX * 2 - 1);
         share1[i] = roundf((random_factor * bias[i]) * 10000) / 10000;
         share2[i] = roundf((bias[i] - share1[i]) * 10000) / 10000;
+        gettimeofday(&end, NULL);
+        total_time += get_time_elapsed(start, end);
     }
 
     return;
@@ -333,6 +347,7 @@ bool linear_veri(MNISTData *input_data, int weight_rows, int weight_cols, float 
     for (int i = 0; i < weight_rows; i++)
     {
         true_output[i] = 0, real_output[i] = 0;
+        //gettimeofday(&start, NULL);
         for (int k = 0; k < input_data->num_images; k++)
         {
             true_output[i] += (int)roundf(bias[i] * 10000) * x[k];
@@ -341,17 +356,24 @@ bool linear_veri(MNISTData *input_data, int weight_rows, int weight_cols, float 
         {
             real_output[i] += input_data->result_data[i][k] * x[k];
         }
+        //gettimeofday(&end, NULL);
+        //total_time += get_time_elapsed(start, end);
 
         for (int k = 0; k < weight_cols; k++)
         {
             int temp = 0;
+            //gettimeofday(&start, NULL);
             for (int j = 0; j < input_data->num_images; j++)
             {
                 temp += (int)roundf(input_data->data[k][j] * 100) * x[j];
             }
             true_output[i] += (int)roundf(weight[i][k] * 100) * temp;
+            //gettimeofday(&end, NULL);
+            //total_time += get_time_elapsed(start, end);
         }
     }
+
+    //gettimeofday(&start, NULL);
     for (int i = 0; i < weight_rows; i++)
     {
         if (true_output[i] != real_output[i])
@@ -364,6 +386,8 @@ bool linear_veri(MNISTData *input_data, int weight_rows, int weight_cols, float 
             return false;
         }
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     free(x);
     free(true_output);
@@ -419,7 +443,10 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_
     mpz_set_si(input->m, (int)roundf(rounded_val * 100));
 
     // Sharing
+    gettimeofday(&start, NULL);
     share(input, keys[0]->y, enc_share, ss);
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
 
     // evaluation
     mpz_inits(co_1, co_2, NULL);
@@ -433,8 +460,11 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_
             }
         }
         mpz_set(eval_parts[i], enc_share[i]->c);
+        //gettimeofday(&start, NULL);
         uint8_t* delta = get_delta(k1, ss[i]->m);
         prob_gen(delta, k1, k2, sigma_1, alpha, keys[0]->g, keys[0]->n_prime, r, eval_parts[i]);
+        //gettimeofday(&end, NULL);
+        //total_time += get_time_elapsed(start, end);
         mpz_powm_ui(co_2, eval_parts[1 - i], 2, k_2); // co_2 = eval_parts[1-i]^2 mod k_2
         mpz_mul_ui(co_1, eval_parts[1 - i], 50);      // co_1 = 50 * eval_parts[1-i]
         mpz_add(co_2, co_2, co_1);                    // co_2 = co_2 + co_1
@@ -447,14 +477,20 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_
         mpz_set_ui(sigma->c, 1);
         evaluate(s[i], eval_parts[i], ct);
         evaluate(sigma, sigma_1, ct);
+        //gettimeofday(&start, NULL);
         verify(s[i]->c, sigma->c, r, alpha, co_1, keys[0]->y, ct);
+        //gettimeofday(&end, NULL);
+        //total_time += get_time_elapsed(start, end);
         free(delta);
     }
 
     // decode
     prs_plaintext_t dec_res;
     prs_plaintext_init(dec_res);
+    gettimeofday(&start, NULL);
     decode(s, keys[0]->p, keys[0]->d, dec_res);
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
     if (mpz_cmp_si(dec_res->m, 20000) > 0)
     {
         mpz_sub(dec_res->m, dec_res->m, keys[0]->k_2);
@@ -480,9 +516,12 @@ int process_rounded_val(float rounded_val, prs_keys_t *keys, uint8_t *k1, uint8_
 void get_phi(mpz_t p, mpz_t q, mpz_t phi){
     mpz_t p_1, q_1;
     mpz_inits(p_1, q_1, NULL);
+    //gettimeofday(&start, NULL);
     mpz_sub_ui(p_1, p, 1);
     mpz_sub_ui(q_1, q, 1);
     mpz_mul(phi, p_1, q_1);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
     mpz_clears(p_1, q_1, NULL);
     return;
 }
@@ -492,12 +531,15 @@ void get_random_star(mpz_t N, mpz_t alpha)
     mpz_t gcd;
     mpz_init(gcd);
 
+    //gettimeofday(&start, NULL);
     do
     {
         mpz_urandomm(alpha, prng, N); // [0,N-1]
         mpz_add_ui(alpha, alpha, 1); // [1,N]
         mpz_gcd(gcd, alpha, N);
     } while (mpz_cmp_ui(gcd, 1) != 0);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     mpz_clear(gcd);
     return;
@@ -511,20 +553,30 @@ int main()
     set_messaging_level(msg_very_verbose); // level of detail of input
     prs_keys_t *keys = (prs_keys_t *)malloc(sizeof(prs_keys_t));
     prs_keys_init(keys);
+
+    gettimeofday(&start, NULL);
     prs_generate_keys(keys, MESSAGE_BITS, DEFAULT_MOD_BITS, prng);
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
     mpz_inits(N, k_2, NULL);
     mpz_set(N, keys[0]->n);
     mpz_set(k_2, keys[0]->k_2);
 
     mpz_t k1, k2;
     mpz_inits(k1, k2, NULL);
+    //gettimeofday(&start, NULL);
     uint8_t* k1_bytes = generate_seed(prng, k1);
     uint8_t* k2_bytes = generate_seed(prng, k2);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     mpz_t alpha, phi_N;
     mpz_inits(alpha, phi_N, NULL);
+    //gettimeofday(&start, NULL);
     get_phi(keys[0]->p, keys[0]->q, phi_N);
     get_random_star(phi_N, alpha);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     MNISTData *mnist = read_mnist_images("/home/ashlynsun/vhss-to-fnn/data/mnist_images.txt");
     if (!mnist)
@@ -532,7 +584,7 @@ int main()
         printf("Failed to read MNIST data\n");
         return 1;
     }
-    //mnist->num_images = 1;
+    mnist->num_images = 1;
 
     float weight1[WEIGHT1_ROWS][WEIGHT1_COLS];
     float bia1[WEIGHT1_ROWS], bia1_1[WEIGHT1_ROWS], bia1_2[WEIGHT1_ROWS];
@@ -563,11 +615,15 @@ int main()
     linear_data_2->temp = (int(*)[MAX_IMAGES])malloc(MAX_IMAGES * INITIAL_IMAGE_SIZE * sizeof(int));
     linear_data_2->result_data = (int(*)[MAX_IMAGES])malloc(MAX_IMAGES * INITIAL_IMAGE_SIZE * sizeof(int));
 
+    //gettimeofday(&start, NULL);
     linear_split(mnist, linear_data_1, linear_data_2);
     bia_split(bia1, WEIGHT1_ROWS, bia1_1, bia1_2);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     linear_evaluate(linear_data_1, WEIGHT1_ROWS, WEIGHT1_COLS, weight1, bia1_1);
     linear_evaluate(linear_data_2, WEIGHT1_ROWS, WEIGHT1_COLS, weight1, bia1_2);
+    gettimeofday(&start, NULL);
     for (int img = 0; img < mnist->num_images; img++)
     {
         for (int i = 0; i < WEIGHT1_ROWS; i++)
@@ -575,6 +631,8 @@ int main()
             mnist->result_data[i][img] = linear_data_1->result_data[i][img] + linear_data_2->result_data[i][img];
         }
     }
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
     if (!linear_veri(mnist, WEIGHT1_ROWS, WEIGHT1_COLS, weight1, bia1))
     {
         printf("Verification of first linear calculation failed\n");
@@ -587,23 +645,33 @@ int main()
         for (int j = 0; j < mnist->num_images; j++)
         {
             printf("First: i = %d, j = %d\n\n", i, j);
+            gettimeofday(&start, NULL);
             mnist->data[i][j] = (float)(mnist->result_data[i][j]) / 10000.0f;
             float rounded_val = roundf(mnist->data[i][j] * 100) / 100; // Retain 2 decimals
+            gettimeofday(&end, NULL);
+            total_time += get_time_elapsed(start, end);
             int processed_val = process_rounded_val(rounded_val, keys, k1_bytes, k2_bytes, alpha);
+            gettimeofday(&start, NULL);
             if (processed_val == 0) {
                 mnist->data[i][j] = 0.0f;
             } else {
                 mnist->data[i][j] = (float)processed_val / 10000.0f;
             }
             mnist->data[i][j] = roundf(mnist->data[i][j] * 100) / 100;
+            gettimeofday(&end, NULL);
+            total_time += get_time_elapsed(start, end);
         }
     }
 
+    //gettimeofday(&start, NULL);
     linear_split(mnist, linear_data_1, linear_data_2);
     bia_split(bia2, WEIGHT2_ROWS, bia2_1, bia2_2);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     linear_evaluate(linear_data_1, WEIGHT2_ROWS, WEIGHT2_COLS, weight2, bia2_1);
     linear_evaluate(linear_data_2, WEIGHT2_ROWS, WEIGHT2_COLS, weight2, bia2_2);
+    gettimeofday(&start, NULL);
     for (int img = 0; img < mnist->num_images; img++)
     {
         for (int i = 0; i < WEIGHT2_ROWS; i++)
@@ -611,6 +679,9 @@ int main()
             mnist->result_data[i][img] = linear_data_1->result_data[i][img] + linear_data_2->result_data[i][img];
         }
     }
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
+
     if (!linear_veri(mnist, WEIGHT2_ROWS, WEIGHT2_COLS, weight2, bia2))
     {
         printf("Verification of second linear calculation failed\n");
@@ -623,9 +694,13 @@ int main()
         for (int j = 0; j < mnist->num_images; j++)
         {
             printf("Second: i = %d, j = %d\n\n", i, j);
+            gettimeofday(&start, NULL);
             mnist->data[i][j] = (float)(mnist->result_data[i][j]) / 10000.0f;
             float rounded_val = roundf(mnist->data[i][j] * 100) / 100; // Retain 2 decimals
+            gettimeofday(&end, NULL);
+            total_time += get_time_elapsed(start, end);
             int processed_val = process_rounded_val(rounded_val, keys, k1_bytes, k2_bytes, alpha);
+            gettimeofday(&start, NULL);
             if (processed_val == 0)
             {
                 mnist->data[i][j] = 0.0f;
@@ -635,14 +710,20 @@ int main()
                 mnist->data[i][j] = (float)processed_val / 10000.0f;
             }
             mnist->data[i][j] = roundf(mnist->data[i][j] * 100) / 100;
+            gettimeofday(&end, NULL);
+            total_time += get_time_elapsed(start, end);
         }
     }
 
+    //gettimeofday(&start, NULL);
     linear_split(mnist, linear_data_1, linear_data_2);
     bia_split(bia3, WEIGHT3_ROWS, bia3_1, bia3_2);
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 
     linear_evaluate(linear_data_1, WEIGHT3_ROWS, WEIGHT3_COLS, weight3, bia3_1);
     linear_evaluate(linear_data_2, WEIGHT3_ROWS, WEIGHT3_COLS, weight3, bia3_2);
+    gettimeofday(&start, NULL);
     for (int img = 0; img < mnist->num_images; img++)
     {
         for (int i = 0; i < WEIGHT3_ROWS; i++)
@@ -650,6 +731,8 @@ int main()
             mnist->result_data[i][img] = linear_data_1->result_data[i][img] + linear_data_2->result_data[i][img];
         }
     }
+    gettimeofday(&end, NULL);
+    total_time += get_time_elapsed(start, end);
     if (!linear_veri(mnist, WEIGHT3_ROWS, WEIGHT3_COLS, weight3, bia3))
     {
         printf("Verification of third linear calculation failed\n");
@@ -717,6 +800,8 @@ int main()
     printf("----------------------------------------\n");
     printf("Aligned prediction: %d\n", aligned_predictions);
     printf("Rate: %.2f%%\n", (float)aligned_predictions / mnist->num_images * 100);
+    printf("\nTotal time: %.3f ms\n", total_time * 1000);
+    printf("Amortized time per image: %.3f ms\n", total_time * 1000 / mnist->num_images);
 
     // free memory
     free(true_labels);

@@ -8,9 +8,9 @@
 #include <string.h>
 
 #define prng_sec_level 128
-#define DEFAULT_MOD_BITS 384
+#define DEFAULT_MOD_BITS 256
 #define BENCHMARK_ITERATIONS 10
-#define MESSAGE_BITS 96
+#define MESSAGE_BITS 64
 
 #define item_number 2
 #define server_number 2
@@ -78,6 +78,7 @@ void random_split(prs_plaintext_t input, prs_plaintext_t parts[], mpz_t k_2)
     mpz_t sum_of_parts;
     mpz_init(sum_of_parts);
     mpz_set_ui(sum_of_parts, 0);
+    //gettimeofday(&start, NULL);
     for(int i=0;i<server_number-1;i++){
         mpz_urandomm(parts[i]->m, prng, input->m);
         mpz_add(sum_of_parts, sum_of_parts, parts[i]->m);
@@ -87,16 +88,21 @@ void random_split(prs_plaintext_t input, prs_plaintext_t parts[], mpz_t k_2)
         mpz_mod(parts[i]->m, parts[i]->m, k_2);
         //gmp_printf("Part %d of %Zd is %Zd\n", i, input, parts[i]);
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
     mpz_clear(sum_of_parts);
 }
 
 void share(prs_plaintext_t input, mpz_t y, prs_ciphertext_t enc_s[], prs_plaintext_t ss[])
 {
     random_split(input, ss, k_2);
+    //gettimeofday(&start, NULL);
     for (int j = 0; j < server_number; j++)
     {
         prs_encrypt(enc_s[j], MESSAGE_BITS, y, N, k_2, ss[j], prng, 48);
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
 }
 
 elapsed_time_t time_share(prs_plaintext_t input, mpz_t y, prs_ciphertext_t enc_s[], prs_plaintext_t ss[])
@@ -140,10 +146,13 @@ void decode(prs_ciphertext_t s[], mpz_t p, mpz_t *d, prs_plaintext_t dec_res)
     prs_ciphertext_init(res);
     mpz_set_ui(res->c, 1);
 
+    //gettimeofday(&start, NULL);
     for(int i=0;i<server_number;i++){
         mpz_mul(res->c, res->c, s[i]->c);
         mpz_mod(res->c, res->c, N);
     }
+    //gettimeofday(&end, NULL);
+    //total_time += get_time_elapsed(start, end);
     prs_decrypt(dec_res, p, MESSAGE_BITS, d, res);
     prs_ciphertext_clear(res);
 }

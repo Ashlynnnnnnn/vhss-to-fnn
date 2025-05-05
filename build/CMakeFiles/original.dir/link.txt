@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/original.dir/src/process/original.c.o CMakeFiles/original.dir/src/utils/lib-mesg.c.o CMakeFiles/original.dir/src/utils/lib-timing.c.o CMakeFiles/original.dir/src/utils/lib-misc.c.o CMakeFiles/original.dir/src/lib/lib-2k-prs.c.o -o original  -lgmp -lm -lpbc 

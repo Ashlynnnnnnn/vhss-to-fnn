@@ -22,6 +22,20 @@ add_executable(
         # lib sources
         src/lib/lib-2k-prs.c)
 
+# Original Model
+add_executable(
+        original
+        # sources
+        src/process/original.c
+
+        # utils
+        src/utils/lib-mesg.c
+        src/utils/lib-timing.c
+        src/utils/lib-misc.c
+
+        # lib sources
+        src/lib/lib-2k-prs.c)
+
 # Basic Part
 add_executable(
         fnn
@@ -72,6 +86,7 @@ add_library(vpoly src/poly_vri/vpoly.c)
 
 # Linking libraries
 target_link_libraries(2k-prs-demo gmp m pbc)
+target_link_libraries(original gmp m pbc)
 target_link_libraries(fnn gmp m pbc)
 target_link_libraries(linear-vhss-to-fnn gmp m pbc)
 target_link_libraries(vhss-to-fnn vpoly demo fri acef gmp m pbc relic)

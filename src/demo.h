@@ -7,8 +7,8 @@
 #include <gmp.h>
 
 #define prng_sec_level 128
-#define DEFAULT_MOD_BITS 384
-#define MESSAGE_BITS 96
+#define DEFAULT_MOD_BITS 256
+#define MESSAGE_BITS 64
 #define item_number 2
 #define server_number 2
 
