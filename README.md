@@ -51,6 +51,27 @@ cd build
 ./2k-prs-demo
 ```
 
+### Original Model
+
+```shell
+cd build
+./original
+```
+
+### Model with Approximation
+
+```shell
+cd build
+./fnn
+```
+
+### Model with Approximation and "linear privacy and verifiability"
+
+```shell
+cd build
+./linear-vhss-to-fnn
+```
+
 ### Whole Process
 
 ```shell
